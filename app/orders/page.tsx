@@ -1,0 +1,129 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { formatPrice } from "@/lib/utils";
+import { Package, ChevronRight } from "lucide-react";
+
+interface Order {
+  _id: string;
+  items: { name: string; quantity: number; size: string }[];
+  deliveryType: string;
+  status: string;
+  totalAmount: number;
+  createdAt: string;
+}
+
+const statusColors: Record<string, string> = {
+  placed: "bg-blue-100 text-blue-700",
+  preparing: "bg-yellow-100 text-yellow-700",
+  "out-for-delivery": "bg-orange-100 text-orange-700",
+  delivered: "bg-green-100 text-green-700",
+  "ready-for-pickup": "bg-purple-100 text-purple-700",
+  "picked-up": "bg-green-100 text-green-700",
+};
+
+const statusLabels: Record<string, string> = {
+  placed: "Order Placed",
+  preparing: "Preparing",
+  "out-for-delivery": "Out for Delivery",
+  delivered: "Delivered",
+  "ready-for-pickup": "Ready for Pickup",
+  "picked-up": "Picked Up",
+};
+
+export default function OrdersPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (status === "unauthenticated") router.push("/auth/login");
+  }, [status, router]);
+
+  useEffect(() => {
+    if (session) {
+      fetch("/api/orders")
+        .then((r) => r.json())
+        .then(setOrders)
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    }
+  }, [session]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 py-10">
+        <h1 className="text-3xl font-bold text-dark mb-8">My Orders</h1>
+
+        {orders.length === 0 ? (
+          <div className="text-center py-16">
+            <Package className="h-14 w-14 text-gray-300 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-dark mb-2">No orders yet</h2>
+            <p className="text-gray-500 mb-6">
+              Your order history will appear here
+            </p>
+            <Link
+              href="/menu"
+              className="px-8 py-3 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-colors"
+            >
+              Order Now
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {orders.map((order) => (
+              <Link
+                key={order._id}
+                href={`/orders/${order._id}`}
+                className="bg-white rounded-2xl p-5 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow group"
+              >
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span
+                      className={`text-xs font-semibold px-3 py-1 rounded-full ${statusColors[order.status] || "bg-gray-100 text-gray-600"}`}
+                    >
+                      {statusLabels[order.status] || order.status}
+                    </span>
+                    <span className="text-xs text-gray-400 capitalize">
+                      {order.deliveryType}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 line-clamp-1">
+                    {order.items
+                      .map((i) => `${i.quantity}x ${i.name}`)
+                      .join(", ")}
+                  </p>
+                  <div className="flex items-center gap-3 mt-2">
+                    <span className="font-bold text-dark">
+                      {formatPrice(order.totalAmount)}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {new Date(order.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-primary transition-colors" />
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
