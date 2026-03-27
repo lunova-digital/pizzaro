@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
 import { formatPrice } from "@/lib/utils";
-import { MapPin, Store, CreditCard } from "lucide-react";
+import { MapPin, Store, CreditCard, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type DeliveryType = "delivery" | "pickup";
@@ -23,20 +23,21 @@ export default function CheckoutPage() {
     state: "",
     zipCode: "",
   });
+  // Guest fields
+  const [guestName, setGuestName] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const isGuest = status === "unauthenticated";
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/login?redirect=/checkout");
-    }
-  }, [status, router]);
-
-  useEffect(() => {
-    if (items.length === 0 && status === "authenticated") {
+    if (items.length === 0 && status !== "loading" && !submitted) {
       router.push("/menu");
     }
-  }, [items, status, router]);
+  }, [items, status, router, submitted]);
 
   useEffect(() => {
     if (session) {
@@ -66,6 +67,17 @@ export default function CheckoutPage() {
     e.preventDefault();
     setError("");
 
+    if (isGuest) {
+      if (!guestName.trim()) {
+        setError("Please enter your name");
+        return;
+      }
+      if (!guestEmail.trim() || !guestEmail.includes("@")) {
+        setError("Please enter a valid email address");
+        return;
+      }
+    }
+
     if (deliveryType === "delivery") {
       if (!address.street || !address.city || !address.state || !address.zipCode) {
         setError("Please fill in your delivery address");
@@ -80,30 +92,38 @@ export default function CheckoutPage() {
 
     setLoading(true);
     try {
+      const body: Record<string, unknown> = {
+        items: items.map((i) => ({
+          pizzaId: i.pizzaId,
+          name: i.name,
+          size: i.size,
+          quantity: i.quantity,
+          price: i.price,
+          toppings: i.toppings,
+        })),
+        deliveryType,
+        address: deliveryType === "delivery" ? address : undefined,
+        phone,
+        totalAmount: total,
+        status: "placed",
+      };
+
+      if (isGuest) {
+        body.guestName = guestName.trim();
+        body.guestEmail = guestEmail.trim().toLowerCase();
+      }
+
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: items.map((i) => ({
-            pizzaId: i.pizzaId,
-            name: i.name,
-            size: i.size,
-            quantity: i.quantity,
-            price: i.price,
-            toppings: i.toppings,
-          })),
-          deliveryType,
-          address: deliveryType === "delivery" ? address : undefined,
-          phone,
-          totalAmount: total,
-          status: "placed",
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) throw new Error("Failed to place order");
       const order = await res.json();
+      setSubmitted(true);
       clearCart();
-      router.push(`/orders/${order._id}?new=1`);
+      router.push(`/orders/${order._id}?new=1${isGuest ? `&email=${encodeURIComponent(guestEmail.trim().toLowerCase())}` : ""}`);
     } catch {
       setError("Failed to place order. Please try again.");
       setLoading(false);
@@ -117,6 +137,44 @@ export default function CheckoutPage() {
 
         <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
+
+            {/* Guest info — only shown when not logged in */}
+            {isGuest && (
+              <div className="bg-white rounded-2xl p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <User className="h-5 w-5 text-primary" />
+                  <h2 className="font-bold text-dark">Your Details</h2>
+                  <span className="ml-auto text-xs text-gray-400">
+                    or{" "}
+                    <a href="/auth/login?redirect=/checkout" className="text-primary hover:underline">
+                      sign in
+                    </a>
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    value={guestName}
+                    onChange={(e) => setGuestName(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  />
+                  <input
+                    type="email"
+                    placeholder="Email Address (used to track your order)"
+                    value={guestEmail}
+                    onChange={(e) => setGuestEmail(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  />
+                </div>
+                <p className="mt-3 text-xs text-gray-400">
+                  Save your email — you will need it to track your order status.
+                </p>
+              </div>
+            )}
+
             {/* Delivery type */}
             <div className="bg-white rounded-2xl p-6 shadow-sm">
               <h2 className="font-bold text-dark mb-4">Delivery Method</h2>
@@ -134,17 +192,13 @@ export default function CheckoutPage() {
                   <MapPin
                     className={cn(
                       "h-6 w-6",
-                      deliveryType === "delivery"
-                        ? "text-primary"
-                        : "text-gray-400"
+                      deliveryType === "delivery" ? "text-primary" : "text-gray-400"
                     )}
                   />
                   <span
                     className={cn(
                       "font-semibold text-sm",
-                      deliveryType === "delivery"
-                        ? "text-primary"
-                        : "text-gray-500"
+                      deliveryType === "delivery" ? "text-primary" : "text-gray-500"
                     )}
                   >
                     Delivery
@@ -163,17 +217,13 @@ export default function CheckoutPage() {
                   <Store
                     className={cn(
                       "h-6 w-6",
-                      deliveryType === "pickup"
-                        ? "text-primary"
-                        : "text-gray-400"
+                      deliveryType === "pickup" ? "text-primary" : "text-gray-400"
                     )}
                   />
                   <span
                     className={cn(
                       "font-semibold text-sm",
-                      deliveryType === "pickup"
-                        ? "text-primary"
-                        : "text-gray-500"
+                      deliveryType === "pickup" ? "text-primary" : "text-gray-500"
                     )}
                   >
                     Pickup
@@ -191,9 +241,7 @@ export default function CheckoutPage() {
                     type="text"
                     placeholder="Street Address"
                     value={address.street}
-                    onChange={(e) =>
-                      setAddress({ ...address, street: e.target.value })
-                    }
+                    onChange={(e) => setAddress({ ...address, street: e.target.value })}
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                   />
                   <div className="grid grid-cols-3 gap-3">
@@ -201,27 +249,21 @@ export default function CheckoutPage() {
                       type="text"
                       placeholder="City"
                       value={address.city}
-                      onChange={(e) =>
-                        setAddress({ ...address, city: e.target.value })
-                      }
+                      onChange={(e) => setAddress({ ...address, city: e.target.value })}
                       className="px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                     />
                     <input
                       type="text"
                       placeholder="State"
                       value={address.state}
-                      onChange={(e) =>
-                        setAddress({ ...address, state: e.target.value })
-                      }
+                      onChange={(e) => setAddress({ ...address, state: e.target.value })}
                       className="px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                     />
                     <input
                       type="text"
                       placeholder="ZIP"
                       value={address.zipCode}
-                      onChange={(e) =>
-                        setAddress({ ...address, zipCode: e.target.value })
-                      }
+                      onChange={(e) => setAddress({ ...address, zipCode: e.target.value })}
                       className="px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                     />
                   </div>
@@ -232,9 +274,7 @@ export default function CheckoutPage() {
             {deliveryType === "pickup" && (
               <div className="bg-white rounded-2xl p-6 shadow-sm">
                 <h2 className="font-bold text-dark mb-2">Pickup Location</h2>
-                <p className="text-gray-500">
-                  123 Pizza Street, New York, NY 10001
-                </p>
+                <p className="text-gray-500">123 Pizza Street, New York, NY 10001</p>
                 <p className="text-sm text-gray-400 mt-1">
                   Ready in approximately 20-25 minutes
                 </p>
@@ -260,12 +300,8 @@ export default function CheckoutPage() {
               <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
                 <CreditCard className="h-5 w-5 text-gray-400" />
                 <div>
-                  <p className="font-semibold text-dark text-sm">
-                    Cash on Delivery
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Pay when your order arrives
-                  </p>
+                  <p className="font-semibold text-dark text-sm">Cash on Delivery</p>
+                  <p className="text-xs text-gray-400">Pay when your order arrives</p>
                 </div>
               </div>
             </div>

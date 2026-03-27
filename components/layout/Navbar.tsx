@@ -22,6 +22,7 @@ export default function Navbar() {
   const links = [
     { href: "/", label: "Home" },
     { href: "/menu", label: "Menu" },
+    { href: "/orders/track", label: "Track Order" },
     ...(session ? [{ href: "/orders", label: "My Orders" }] : []),
   ];
 

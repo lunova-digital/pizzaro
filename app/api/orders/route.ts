@@ -22,14 +22,26 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const session = await auth();
-  if (!session?.user) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  await dbConnect();
+
+  const body = await request.json();
+
+  if (session?.user) {
+    // Logged-in order
+    const userId = (session.user as { id: string }).id;
+    const order = await Order.create({ ...body, userId });
+    return Response.json(order, { status: 201 });
   }
 
-  await dbConnect();
-  const body = await request.json();
-  const userId = (session.user as { id: string }).id;
+  // Guest order — require name + email
+  const { guestName, guestEmail } = body;
+  if (!guestName || !guestEmail) {
+    return Response.json(
+      { error: "Guest name and email are required" },
+      { status: 400 }
+    );
+  }
 
-  const order = await Order.create({ ...body, userId });
+  const order = await Order.create({ ...body, userId: undefined });
   return Response.json(order, { status: 201 });
 }

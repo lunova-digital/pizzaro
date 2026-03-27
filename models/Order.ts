@@ -20,7 +20,9 @@ export type OrderStatus =
 export type DeliveryType = "delivery" | "pickup";
 
 export interface IOrder extends Document {
-  userId: mongoose.Types.ObjectId;
+  userId?: mongoose.Types.ObjectId;
+  guestName?: string;
+  guestEmail?: string;
   items: IOrderItem[];
   deliveryType: DeliveryType;
   address?: {
@@ -47,7 +49,9 @@ const OrderItemSchema = new Schema<IOrderItem>({
 
 const OrderSchema = new Schema<IOrder>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: false },
+    guestName: { type: String },
+    guestEmail: { type: String },
     items: { type: [OrderItemSchema], required: true },
     deliveryType: {
       type: String,

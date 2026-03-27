@@ -41,7 +41,7 @@ export default function Footer() {
               {[
                 { href: "/", label: "Home" },
                 { href: "/menu", label: "Our Menu" },
-                { href: "/orders", label: "Track Order" },
+                { href: "/orders/track", label: "Track Order" },
                 { href: "/profile", label: "My Account" },
                 { href: "/auth/login", label: "Sign In" },
               ].map((link) => (
