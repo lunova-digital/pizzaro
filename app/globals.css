@@ -1,22 +1,70 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-primary: #e63946;
-  --color-primary-dark: #c1121f;
-  --color-secondary: #f4a261;
-  --color-accent: #2a9d8f;
-  --color-dark: #1d3557;
-  --color-light: #f1faee;
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Brand colors — Food Delivery palette */
+  --color-primary:      #EA580C;
+  --color-primary-dark: #C2410C;
+  --color-primary-light:#FED7AA;
+  --color-secondary:    #F97316;
+  --color-accent:       #2563EB;
+  --color-accent-dark:  #1D4ED8;
+  --color-success:      #16A34A;
+  --color-danger:       #DC2626;
+
+  /* Surfaces */
+  --color-bg:           #FFF7ED;
+  --color-surface:      #FFFFFF;
+  --color-muted:        #FDF4F0;
+  --color-border:       #FCEAE1;
+
+  /* Text */
+  --color-foreground:   #0F172A;
+  --color-muted-fg:     #64748B;
+  --color-dark:         #1E293B;
+
+  /* Legacy alias */
+  --color-light:        #FFF7ED;
+
+  /* Typography */
+  --font-heading: 'Playfair Display SC', Georgia, serif;
+  --font-sans:    'Karla', var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono:    var(--font-geist-mono);
 }
 
-body {
-  background: #ffffff;
-  color: #1d3557;
-  font-family: var(--font-sans), system-ui, sans-serif;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 html {
   scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: #FFF7ED;
+  color: #0F172A;
+  font-family: var(--font-sans);
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+:focus-visible {
+  outline: 2px solid #EA580C;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

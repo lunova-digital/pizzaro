@@ -4,48 +4,68 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
+import { Star, Flame } from "lucide-react";
 
 const pizzas = [
   {
     name: "Margherita",
-    description: "Classic tomato sauce, mozzarella, fresh basil",
+    description: "Classic tomato sauce, fresh mozzarella, hand-torn basil",
     price: 12.99,
-    image:
-      "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop",
+    rating: 4.9,
+    tag: "Classic",
+    image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop",
   },
   {
     name: "Pepperoni",
-    description: "Loaded with pepperoni and mozzarella cheese",
+    description: "Loaded double pepperoni, mozzarella, tangy tomato sauce",
     price: 14.99,
-    image:
-      "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400&h=300&fit=crop",
+    rating: 4.8,
+    tag: "Bestseller",
+    image: "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400&h=300&fit=crop",
   },
   {
     name: "BBQ Chicken",
-    description: "Grilled chicken, BBQ sauce, red onions, cilantro",
+    description: "Grilled chicken, smoky BBQ, red onions, fresh cilantro",
     price: 15.99,
-    image:
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop",
+    rating: 4.9,
+    tag: "Popular",
+    image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&h=300&fit=crop",
   },
   {
     name: "Veggie Supreme",
-    description: "Bell peppers, mushrooms, olives, onions, tomatoes",
+    description: "Bell peppers, mushrooms, olives, onions, cherry tomatoes",
     price: 13.99,
-    image:
-      "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=400&h=300&fit=crop",
+    rating: 4.7,
+    tag: "Veggie",
+    image: "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=400&h=300&fit=crop",
   },
 ];
 
+const tagColors: Record<string, string> = {
+  Classic: "bg-orange-100 text-orange-700",
+  Bestseller: "bg-red-100 text-red-700",
+  Popular: "bg-yellow-100 text-yellow-700",
+  Veggie: "bg-green-100 text-green-700",
+};
+
 export default function FeaturedPizzas() {
   return (
-    <section className="py-16 lg:py-24 bg-white">
+    <section className="py-20 lg:py-28 bg-surface">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-dark">
+        {/* Header */}
+        <div className="text-center mb-14">
+          <div className="inline-flex items-center gap-2 text-primary text-sm font-semibold mb-3">
+            <Flame className="h-4 w-4" />
+            Customer Favorites
+          </div>
+          <h2
+            className="text-4xl sm:text-5xl font-bold text-foreground"
+            style={{ fontFamily: "var(--font-heading)" }}
+          >
             Our Bestsellers
           </h2>
-          <p className="mt-3 text-gray-500 text-lg">
-            Loved by thousands, crafted to perfection
+          <p className="mt-4 text-muted-fg text-lg max-w-md mx-auto">
+            Tried, tested, and loved by thousands of happy customers every day.
           </p>
         </div>
 
@@ -53,41 +73,62 @@ export default function FeaturedPizzas() {
           {pizzas.map((pizza, i) => (
             <motion.div
               key={pizza.name}
-              initial={{ y: 10 }}
+              initial={{ y: 16 }}
               whileInView={{ y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.08 }}
-              whileHover={{ y: -4 }}
-              className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 group"
+              transition={{ delay: i * 0.08, duration: 0.35 }}
+              whileHover={{ y: -6, transition: { duration: 0.2 } }}
+              className="bg-surface rounded-3xl overflow-hidden shadow-md shadow-orange-100/80 border border-border group cursor-pointer"
             >
-              <div className="relative h-48 overflow-hidden">
-                <Image
-                  src={pizza.image}
-                  alt={pizza.name}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className="p-5">
-                <h3 className="font-bold text-dark text-lg">{pizza.name}</h3>
-                <p className="text-gray-500 text-sm mt-1 line-clamp-2">
-                  {pizza.description}
-                </p>
-                <div className="mt-4 flex items-center justify-between">
-                  <span className="text-xl font-bold text-primary">
-                    {formatPrice(pizza.price)}
+              <Link href="/menu">
+                {/* Image */}
+                <div className="relative h-52 overflow-hidden">
+                  <Image
+                    src={pizza.image}
+                    alt={pizza.name}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                  {/* Tag */}
+                  <span className={`absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full ${tagColors[pizza.tag]}`}>
+                    {pizza.tag}
                   </span>
-                  <Link
-                    href="/menu"
-                    className="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-full hover:bg-primary-dark transition-colors"
-                  >
-                    Order
-                  </Link>
                 </div>
-              </div>
+
+                <div className="p-5">
+                  <div className="flex items-start justify-between mb-1.5">
+                    <h3 className="font-bold text-foreground text-lg leading-tight">{pizza.name}</h3>
+                    <div className="flex items-center gap-0.5 shrink-0 ml-2">
+                      <Star className="h-3.5 w-3.5 fill-secondary text-secondary" />
+                      <span className="text-xs font-bold text-dark">{pizza.rating}</span>
+                    </div>
+                  </div>
+                  <p className="text-muted-fg text-sm leading-relaxed line-clamp-2 mb-4">
+                    {pizza.description}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xl font-bold text-primary">
+                      {formatPrice(pizza.price)}
+                    </span>
+                    <span className="px-4 py-2 bg-primary/10 text-primary text-sm font-bold rounded-xl group-hover:bg-primary group-hover:text-white transition-all duration-200">
+                      Order →
+                    </span>
+                  </div>
+                </div>
+              </Link>
             </motion.div>
           ))}
+        </div>
+
+        <div className="text-center mt-12">
+          <Link
+            href="/menu"
+            className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl border-2 border-primary text-primary font-bold hover:bg-primary hover:text-white transition-all duration-200"
+          >
+            View Full Menu
+          </Link>
         </div>
       </div>
     </section>
