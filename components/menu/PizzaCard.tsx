@@ -14,6 +14,8 @@ interface PizzaCardProps {
     image: string;
     sizes: { name: string; price: number }[];
     category: string;
+    averageRating?: number;
+    ratingCount?: number;
   };
 }
 
@@ -53,7 +55,11 @@ export default function PizzaCard({ pizza }: PizzaCardProps) {
           </Link>
           <div className="flex items-center gap-0.5 shrink-0 ml-2">
             <Star className="h-3.5 w-3.5 fill-secondary text-secondary" />
-            <span className="text-xs font-bold text-dark">4.8</span>
+            <span className="text-xs font-bold text-dark">
+              {pizza.ratingCount && pizza.ratingCount > 0
+                ? pizza.averageRating?.toFixed(1)
+                : "New"}
+            </span>
           </div>
         </div>
         <p className="text-muted-fg text-sm leading-relaxed line-clamp-2 mb-4">

@@ -132,22 +132,22 @@ export default function AdminOrdersPage() {
 
 	return (
 		<div>
-			<div className='flex justify-between items-center'>
-				<h1 className='text-2xl font-bold text-dark mb-8'>
+			<div className='mb-6'>
+				<h1 className='text-2xl font-bold text-dark mb-4'>
 					Orders ({filteredOrders.length})
 				</h1>
-				<div className='mb-4 space-x-1'>
+				<div className='flex flex-col sm:flex-row gap-2'>
 					<input
 						type='text'
 						placeholder='Search by Order ID...'
 						value={orderIdFilter}
 						onChange={(e) => setOrderIdFilter(e.target.value)}
-						className='w-full md:w-80 border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary'
-					/>{' '}
+						className='flex-1 border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary'
+					/>
 					<select
 						value={statusFilter}
 						onChange={(e) => setStatusFilter(e.target.value)}
-						className='w-full md:w-56 border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary'
+						className='sm:w-48 border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary'
 					>
 						<option value=''>All Statuses</option>
 						{STATUSES.map((status) => (
@@ -159,8 +159,8 @@ export default function AdminOrdersPage() {
 				</div>
 			</div>
 
-			<div className='bg-white rounded-2xl shadow-sm overflow-hidden'>
-				<table className='w-full text-sm'>
+			<div className='bg-white rounded-2xl shadow-sm overflow-x-auto'>
+				<table className='w-full min-w-[700px] text-sm'>
 					<thead>
 						<tr className='bg-gray-50 border-b border-gray-100'>
 							<th className='text-left px-4 py-3 text-gray-500 font-semibold'>Order</th>

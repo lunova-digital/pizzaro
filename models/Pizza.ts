@@ -13,6 +13,8 @@ export interface IPizza extends Document {
   sizes: ISize[];
   toppings: string[];
   isAvailable: boolean;
+  averageRating: number;
+  ratingCount: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,6 +33,8 @@ const PizzaSchema = new Schema<IPizza>(
     sizes: { type: [SizeSchema], required: true },
     toppings: [{ type: String }],
     isAvailable: { type: Boolean, default: true },
+    averageRating: { type: Number, default: 5 },
+    ratingCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

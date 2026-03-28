@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { ShoppingCart, Minus, Plus, ArrowLeft, Check, ArrowRight } from "lucide-react";
+import { ShoppingCart, Minus, Plus, ArrowLeft, Check, ArrowRight, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCartStore } from "@/store/cartStore";
 import { formatPrice } from "@/lib/utils";
@@ -18,6 +18,8 @@ interface Pizza {
   category: string;
   sizes: { name: string; price: number }[];
   toppings: string[];
+  averageRating?: number;
+  ratingCount?: number;
 }
 
 export default function PizzaDetailPage() {
@@ -122,9 +124,22 @@ export default function PizzaDetailPage() {
             className="space-y-6"
           >
             <div>
-              <span className="text-sm font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">
-                {pizza.category}
-              </span>
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="text-sm font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">
+                  {pizza.category}
+                </span>
+                <div className="flex items-center gap-1">
+                  <Star className="h-4 w-4 fill-secondary text-secondary" />
+                  <span className="text-sm font-bold text-dark">
+                    {pizza.ratingCount && pizza.ratingCount > 0
+                      ? pizza.averageRating?.toFixed(1)
+                      : "New"}
+                  </span>
+                  {pizza.ratingCount && pizza.ratingCount > 0 ? (
+                    <span className="text-xs text-gray-400">({pizza.ratingCount} ratings)</span>
+                  ) : null}
+                </div>
+              </div>
               <h1 className="mt-3 text-3xl sm:text-4xl font-bold text-dark">
                 {pizza.name}
               </h1>

@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import AdminSidebar from "@/components/layout/AdminSidebar";
+import AdminShell from "@/components/layout/AdminShell";
 
 export default async function AdminLayout({
   children,
@@ -17,10 +17,5 @@ export default async function AdminLayout({
     redirect("/");
   }
 
-  return (
-    <div className="flex min-h-screen bg-gray-50">
-      <AdminSidebar />
-      <main className="flex-1 ml-64 p-8">{children}</main>
-    </div>
-  );
+  return <AdminShell>{children}</AdminShell>;
 }

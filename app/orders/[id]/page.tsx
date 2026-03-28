@@ -6,7 +6,7 @@ import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
 import {
   CheckCircle, Clock, ChefHat, Truck, Package,
-  ArrowLeft, Download, Pizza, MapPin, Phone, Mail,
+  ArrowLeft, Download, Pizza, MapPin, Phone, Mail, Star,
 } from "lucide-react";
 
 interface Order {
@@ -21,6 +21,7 @@ interface Order {
   status: string;
   riderPhone?: string;
   riderName?: string;
+  rating?: number;
   totalAmount: number;
   createdAt: string;
 }
@@ -68,6 +69,10 @@ export default function OrderDetailPage() {
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [ratingLoading, setRatingLoading] = useState(false);
 
   const fetchOrder = useCallback(async () => {
     try {
@@ -100,6 +105,21 @@ export default function OrderDetailPage() {
 
   function handlePrint() {
     window.print();
+  }
+
+  async function submitRating() {
+    if (!selectedRating || !order) return;
+    setRatingLoading(true);
+    try {
+      const res = await fetch(`/api/orders/${order._id}/rate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rating: selectedRating }),
+      });
+      if (res.ok) setRatingSubmitted(true);
+    } finally {
+      setRatingLoading(false);
+    }
   }
 
   if (loading) {
@@ -432,6 +452,65 @@ export default function OrderDetailPage() {
                 )}
               </div>
               <p className="text-xs text-gray-400 mt-3">Your delivery address will be shared with the rider via WhatsApp</p>
+            </div>
+          )}
+
+          {/* Rating — show after delivery/pickup */}
+          {(order.status === "delivered" || order.status === "picked-up") && (
+            <div className="no-print bg-white rounded-3xl shadow-sm border border-gray-100 p-6 mb-6">
+              <h2 className="font-bold text-dark mb-1 flex items-center gap-2">
+                <Star className="h-5 w-5 text-secondary fill-secondary" />
+                Rate Your Order
+              </h2>
+              {order.rating || ratingSubmitted ? (
+                <div className="flex flex-col items-center gap-2 py-3">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star
+                        key={s}
+                        className={`h-7 w-7 ${
+                          s <= (order.rating ?? selectedRating)
+                            ? "fill-secondary text-secondary"
+                            : "fill-gray-100 text-gray-200"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-500">Thanks for your feedback!</p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  <p className="text-sm text-gray-500">How was your experience?</p>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <button
+                        key={s}
+                        onMouseEnter={() => setHoverRating(s)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        onClick={() => setSelectedRating(s)}
+                        className="transition-transform hover:scale-110"
+                      >
+                        <Star
+                          className={`h-8 w-8 transition-colors ${
+                            s <= (hoverRating || selectedRating)
+                              ? "fill-secondary text-secondary"
+                              : "fill-gray-100 text-gray-300"
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  {selectedRating > 0 && (
+                    <button
+                      onClick={submitRating}
+                      disabled={ratingLoading}
+                      className="self-start px-6 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors text-sm disabled:opacity-60"
+                    >
+                      {ratingLoading ? "Submitting…" : "Submit Rating"}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
