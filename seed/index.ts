@@ -4,7 +4,7 @@ import Category from "../models/Category";
 import User from "../models/User";
 import bcrypt from "bcryptjs";
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://admin:yourpassword@localhost:27017/pizzaro?authSource=admin";
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/pizzaro?authSource=admin";
 
 const categories = [
   {
