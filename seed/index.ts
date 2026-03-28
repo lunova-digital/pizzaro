@@ -181,10 +181,13 @@ async function seed() {
     await mongoose.connect(MONGODB_URI);
     console.log("Connected to MongoDB");
 
-    // Clear existing data
-    await Category.deleteMany({});
-    await Pizza.deleteMany({});
-    console.log("Cleared existing data");
+    // Skip if already seeded
+    const existing = await Pizza.countDocuments();
+    if (existing > 0) {
+      console.log(`Database already has ${existing} pizzas — skipping seed.`);
+      await mongoose.connection.close();
+      process.exit(0);
+    }
 
     // Seed categories
     await Category.insertMany(categories);

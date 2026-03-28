@@ -35,6 +35,7 @@ export default function PizzaCard({ pizza }: PizzaCardProps) {
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             className="object-cover group-hover:scale-110 transition-transform duration-500"
+            unoptimized={pizza.image.startsWith("/uploads/")}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
           <span className="absolute top-3 left-3 bg-white/95 text-xs font-bold px-3 py-1 rounded-full text-dark shadow-sm">

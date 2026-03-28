@@ -27,11 +27,31 @@ export default function TrackOrderPage() {
 
     setLoading(true);
     try {
+      const id = orderId.trim();
       const param = contactType === "email"
         ? `email=${encodeURIComponent(contact.trim().toLowerCase())}`
         : `phone=${encodeURIComponent(contact.trim())}`;
 
-      const res = await fetch(`/api/orders/${orderId.trim()}?${param}`);
+      // Short IDs (≤8 chars, e.g. from invoice) need a search lookup to get the full ObjectId
+      if (id.length <= 8) {
+        const res = await fetch(`/api/orders/search?shortId=${encodeURIComponent(id)}&${param}`);
+        if (res.status === 404) {
+          setError("No order found. Please check your Order ID and contact details.");
+          setLoading(false);
+          return;
+        }
+        if (!res.ok) {
+          setError("Could not find that order. Please double-check your details.");
+          setLoading(false);
+          return;
+        }
+        const data = await res.json();
+        router.push(`/orders/${data._id}?${param}`);
+        return;
+      }
+
+      // Full ObjectId — verify directly
+      const res = await fetch(`/api/orders/${id}?${param}`);
 
       if (res.status === 404) {
         setError("No order found. Please check your Order ID and contact details.");
@@ -44,7 +64,7 @@ export default function TrackOrderPage() {
         return;
       }
 
-      router.push(`/orders/${orderId.trim()}?${param}`);
+      router.push(`/orders/${id}?${param}`);
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
@@ -81,7 +101,7 @@ export default function TrackOrderPage() {
             </label>
             <input
               type="text"
-              placeholder="e.g. 64A2B3C4D5E6"
+              placeholder="e.g. A1B2C3D4 (short) or full ID"
               value={orderId}
               onChange={(e) => setOrderId(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono text-sm"

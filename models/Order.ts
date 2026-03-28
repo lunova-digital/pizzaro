@@ -32,7 +32,10 @@ export interface IOrder extends Document {
     zipCode: string;
   };
   phone: string;
+  addressNotes?: string;
   status: OrderStatus;
+  riderPhone?: string;
+  riderName?: string;
   totalAmount: number;
   createdAt: Date;
   updatedAt: Date;
@@ -65,6 +68,9 @@ const OrderSchema = new Schema<IOrder>(
       zipCode: String,
     },
     phone: { type: String, required: true },
+    addressNotes: { type: String },
+    riderPhone: { type: String },
+    riderName: { type: String },
     status: {
       type: String,
       enum: [

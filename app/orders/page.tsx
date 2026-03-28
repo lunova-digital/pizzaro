@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
-import { Package, ChevronRight } from "lucide-react";
+import { Package, ChevronRight, Download } from "lucide-react";
 
 interface Order {
   _id: string;
@@ -35,7 +35,7 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function OrdersPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,16 +45,16 @@ export default function OrdersPage() {
   }, [status, router]);
 
   useEffect(() => {
-    if (session) {
-      fetch("/api/orders")
-        .then((r) => r.json())
-        .then(setOrders)
-        .catch(() => {})
-        .finally(() => setLoading(false));
-    }
-  }, [session]);
+    if (status === "loading") return;
+    if (status === "unauthenticated") return;
+    fetch("/api/orders")
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setOrders(data); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [status]);
 
-  if (loading) {
+  if (loading && status !== "unauthenticated") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -84,42 +84,54 @@ export default function OrdersPage() {
         ) : (
           <div className="space-y-4">
             {orders.map((order) => (
-              <Link
+              <div
                 key={order._id}
-                href={`/orders/${order._id}`}
-                className="bg-white rounded-2xl p-5 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow group"
+                className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
               >
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span
-                      className={`text-xs font-semibold px-3 py-1 rounded-full ${statusColors[order.status] || "bg-gray-100 text-gray-600"}`}
+                <div className="flex items-start justify-between gap-4">
+                  <Link href={`/orders/${order._id}`} className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span
+                        className={`text-xs font-semibold px-3 py-1 rounded-full ${statusColors[order.status] || "bg-gray-100 text-gray-600"}`}
+                      >
+                        {statusLabels[order.status] || order.status}
+                      </span>
+                      <span className="text-xs text-gray-400 capitalize">
+                        {order.deliveryType}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 line-clamp-1">
+                      {order.items
+                        .map((i) => `${i.quantity}x ${i.name}`)
+                        .join(", ")}
+                    </p>
+                    <div className="flex items-center gap-3 mt-2">
+                      <span className="font-bold text-dark">
+                        {formatPrice(order.totalAmount)}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {new Date(order.createdAt).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </span>
+                    </div>
+                  </Link>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Link
+                      href={`/orders/${order._id}?download=1`}
+                      title="Download Invoice"
+                      className="p-2 rounded-xl text-gray-400 hover:text-primary hover:bg-orange-50 transition-all"
                     >
-                      {statusLabels[order.status] || order.status}
-                    </span>
-                    <span className="text-xs text-gray-400 capitalize">
-                      {order.deliveryType}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600 line-clamp-1">
-                    {order.items
-                      .map((i) => `${i.quantity}x ${i.name}`)
-                      .join(", ")}
-                  </p>
-                  <div className="flex items-center gap-3 mt-2">
-                    <span className="font-bold text-dark">
-                      {formatPrice(order.totalAmount)}
-                    </span>
-                    <span className="text-xs text-gray-400">
-                      {new Date(order.createdAt).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
+                      <Download className="h-4 w-4" />
+                    </Link>
+                    <Link href={`/orders/${order._id}`}>
+                      <ChevronRight className="h-5 w-5 text-gray-300 hover:text-primary transition-colors" />
+                    </Link>
                   </div>
                 </div>
-                <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-primary transition-colors" />
-              </Link>
+              </div>
             ))}
           </div>
         )}

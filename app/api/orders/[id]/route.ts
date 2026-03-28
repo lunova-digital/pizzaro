@@ -61,9 +61,13 @@ export async function PATCH(
 
   await dbConnect();
   const { id } = await ctx.params;
-  const { status } = await request.json();
+  const body = await request.json();
+  const update: Record<string, unknown> = {};
+  if (body.status !== undefined) update.status = body.status;
+  if (body.riderPhone !== undefined) update.riderPhone = body.riderPhone;
+  if (body.riderName !== undefined) update.riderName = body.riderName;
 
-  const order = await Order.findByIdAndUpdate(id, { status }, { new: true });
+  const order = await Order.findByIdAndUpdate(id, update, { new: true });
   if (!order) {
     return Response.json({ error: "Order not found" }, { status: 404 });
   }

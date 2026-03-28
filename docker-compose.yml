@@ -1,16 +1,63 @@
 # docker-compose.yml
 services:
+
   mongodb:
     image: mongo:7
-    container_name: mongodb
+    container_name: pizzaro_db
     restart: unless-stopped
-    ports:
-      - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: yourpassword
     volumes:
       - mongo_data:/data/db
+    # host network: MongoDB binds directly on host port 27017, no NAT
+    network_mode: host
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  seed:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: seeder
+    container_name: pizzaro_seed
+    network_mode: host
+    environment:
+      MONGODB_URI: mongodb://admin:yourpassword@localhost:27017/pizzaro?authSource=admin
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    # Run once and stop — never restart
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pizzaro_app
+    restart: unless-stopped
+    # host network: app binds directly on host port 8336, no NAT or iptables
+    network_mode: host
+    environment:
+      NODE_ENV: production
+      PORT: 8336
+      HOSTNAME: "0.0.0.0"
+      # With host networking both containers share the host network stack,
+      # so the app reaches MongoDB via localhost
+      MONGODB_URI: mongodb://admin:yourpassword@localhost:27017/pizzaro?authSource=admin
+      NEXTAUTH_SECRET: pizzaro-secret-change-me-in-production
+      # Change to your server's public URL when deploying on a remote server
+      NEXTAUTH_URL: http://localhost:8336
+    volumes:
+      - uploads_data:/app/public/uploads
+    depends_on:
+      mongodb:
+        condition: service_healthy
 
 volumes:
   mongo_data:
+  uploads_data:

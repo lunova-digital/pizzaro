@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { ShoppingCart, Minus, Plus, ArrowLeft, Check } from "lucide-react";
+import { ShoppingCart, Minus, Plus, ArrowLeft, Check, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCartStore } from "@/store/cartStore";
 import { formatPrice } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 interface Pizza {
   _id: string;
@@ -47,6 +48,11 @@ export default function PizzaDetailPage() {
     load();
   }, [params.id, router]);
 
+  // Must be before any conditional return — hooks cannot follow a return
+  useEffect(() => {
+    setAdded(false);
+  }, [selectedSize, selectedToppings, quantity]);
+
   if (loading || !pizza) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -78,7 +84,6 @@ export default function PizzaDetailPage() {
       image: pizza!.image,
     });
     setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
   }
 
   return (
@@ -105,6 +110,7 @@ export default function PizzaDetailPage() {
                 fill
                 className="object-cover"
                 priority
+                unoptimized={pizza.image.startsWith("/uploads/")}
               />
             </div>
           </motion.div>
@@ -210,25 +216,29 @@ export default function PizzaDetailPage() {
                   {formatPrice(totalPrice)}
                 </span>
               </div>
-              <button
-                onClick={handleAddToCart}
-                className={cn(
-                  "w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all",
-                  added
-                    ? "bg-accent text-white"
-                    : "bg-primary text-white hover:bg-primary-dark"
-                )}
-              >
-                {added ? (
-                  <>
-                    <Check className="h-5 w-5" /> Added to Cart!
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="h-5 w-5" /> Add to Cart
-                  </>
-                )}
-              </button>
+              {added ? (
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setAdded(false)}
+                    className="flex-1 py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 bg-green-500 text-white"
+                  >
+                    <Check className="h-5 w-5" /> Added to Cart
+                  </button>
+                  <Link
+                    href="/checkout"
+                    className="flex-1 py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 bg-primary text-white hover:bg-primary-dark transition-colors"
+                  >
+                    Checkout <ArrowRight className="h-5 w-5" />
+                  </Link>
+                </div>
+              ) : (
+                <button
+                  onClick={handleAddToCart}
+                  className="w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 bg-primary text-white hover:bg-primary-dark transition-all"
+                >
+                  <ShoppingCart className="h-5 w-5" /> Add to Cart
+                </button>
+              )}
             </div>
           </motion.div>
         </div>

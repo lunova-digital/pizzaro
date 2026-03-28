@@ -5,7 +5,10 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
 import { formatPrice } from "@/lib/utils";
-import { MapPin, Store, CreditCard, User } from "lucide-react";
+import { MapPin, Store, CreditCard, User, LocateFixed } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const MapPicker = dynamic(() => import("@/components/MapPicker"), { ssr: false });
 import { cn } from "@/lib/utils";
 
 type DeliveryType = "delivery" | "pickup";
@@ -27,9 +30,12 @@ export default function CheckoutPage() {
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
 
+  const [addressNotes, setAddressNotes] = useState("");
+  const [mapCenter, setMapCenter] = useState<[number, number]>([40.7128, -74.006]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [locating, setLocating] = useState(false);
 
   const isGuest = status === "unauthenticated";
 
@@ -62,6 +68,42 @@ export default function CheckoutPage() {
   const subtotal = totalPrice();
   const deliveryFee = deliveryType === "delivery" && subtotal < 25 ? 4.99 : 0;
   const total = subtotal + deliveryFee;
+
+  function handleGetLocation() {
+    if (!navigator.geolocation) {
+      setError("Geolocation is not supported by your browser");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          setMapCenter([latitude, longitude]);
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
+            { headers: { "Accept-Language": "en" } }
+          );
+          const data = await res.json();
+          const a = data.address ?? {};
+          setAddress({
+            street: [a.house_number, a.road].filter(Boolean).join(" ") || a.pedestrian || "",
+            city: a.city || a.town || a.village || a.county || "",
+            state: a.state || "",
+            zipCode: a.postcode || "",
+          });
+        } catch {
+          setError("Could not fetch address from location. Please fill in manually.");
+        } finally {
+          setLocating(false);
+        }
+      },
+      () => {
+        setError("Location access denied. Please fill in your address manually.");
+        setLocating(false);
+      }
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -103,6 +145,7 @@ export default function CheckoutPage() {
         })),
         deliveryType,
         address: deliveryType === "delivery" ? address : undefined,
+        addressNotes: addressNotes.trim() || undefined,
         phone,
         totalAmount: total,
         status: "placed",
@@ -235,8 +278,32 @@ export default function CheckoutPage() {
             {/* Address (delivery only) */}
             {deliveryType === "delivery" && (
               <div className="bg-white rounded-2xl p-6 shadow-sm">
-                <h2 className="font-bold text-dark mb-4">Delivery Address</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-bold text-dark">Delivery Address</h2>
+                  <button
+                    type="button"
+                    onClick={handleGetLocation}
+                    disabled={locating}
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary-dark disabled:opacity-50 transition-colors"
+                  >
+                    <LocateFixed className="h-4 w-4" />
+                    {locating ? "Locating..." : "Use my location"}
+                  </button>
+                </div>
                 <div className="space-y-3">
+                  {/* Interactive map — click or drag to pin your location */}
+                  <div className="rounded-xl overflow-hidden border border-gray-200">
+                    <MapPicker
+                      center={mapCenter}
+                      onLocationSelect={(lat, lng, addr) => {
+                        setAddress(addr);
+                        setMapCenter([lat, lng]);
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    Click on the map or drag the pin to set your delivery location. Fields below update automatically.
+                  </p>
                   <input
                     type="text"
                     placeholder="Street Address"
@@ -267,6 +334,13 @@ export default function CheckoutPage() {
                       className="px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                     />
                   </div>
+                  <textarea
+                    placeholder="Delivery notes (apartment, floor, landmark, gate code...)"
+                    value={addressNotes}
+                    onChange={(e) => setAddressNotes(e.target.value)}
+                    rows={2}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none text-sm"
+                  />
                 </div>
               </div>
             )}
