@@ -1,169 +1,206 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 
 interface Order {
-  _id: string;
-  items: { name: string; quantity: number }[];
-  deliveryType: string;
-  phone: string;
-  address?: { street: string; city: string };
-  status: string;
-  totalAmount: number;
-  createdAt: string;
+	_id: string;
+	items: { name: string; quantity: number }[];
+	deliveryType: string;
+	phone: string;
+	address?: { street: string; city: string };
+	status: string;
+	totalAmount: number;
+	createdAt: string;
 }
 
 const STATUSES = [
-  "placed",
-  "preparing",
-  "out-for-delivery",
-  "delivered",
-  "ready-for-pickup",
-  "picked-up",
+	'placed',
+	'preparing',
+	'out-for-delivery',
+	'delivered',
+	'ready-for-pickup',
+	'picked-up',
 ];
 
 const statusColors: Record<string, string> = {
-  placed: "bg-blue-100 text-blue-700",
-  preparing: "bg-yellow-100 text-yellow-700",
-  "out-for-delivery": "bg-orange-100 text-orange-700",
-  delivered: "bg-green-100 text-green-700",
-  "ready-for-pickup": "bg-purple-100 text-purple-700",
-  "picked-up": "bg-green-100 text-green-700",
+	placed: 'bg-blue-100 text-blue-700',
+	preparing: 'bg-yellow-100 text-yellow-700',
+	'out-for-delivery': 'bg-orange-100 text-orange-700',
+	delivered: 'bg-green-100 text-green-700',
+	'ready-for-pickup': 'bg-purple-100 text-purple-700',
+	'picked-up': 'bg-green-100 text-green-700',
 };
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState<string | null>(null);
+	const [orders, setOrders] = useState<Order[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [updating, setUpdating] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch("/api/orders")
-      .then((r) => r.json())
-      .then(setOrders)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+	const [statusFilter, setStatusFilter] = useState('');
+	const [orderIdFilter, setOrderIdFilter] = useState<string>('');
 
-  async function updateStatus(orderId: string, status: string) {
-    setUpdating(orderId);
-    try {
-      const res = await fetch(`/api/orders/${orderId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-      if (res.ok) {
-        setOrders((prev) =>
-          prev.map((o) => (o._id === orderId ? { ...o, status } : o))
-        );
-      }
-    } finally {
-      setUpdating(null);
-    }
-  }
+	const filteredOrders = orders.filter((order) => {
+		const matchesId = order._id
+			.toLowerCase()
+			.includes(orderIdFilter.toLowerCase());
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+		const matchesStatus = statusFilter ? order.status === statusFilter : true;
 
-  return (
-    <div>
-      <h1 className="text-2xl font-bold text-dark mb-8">
-        Orders ({orders.length})
-      </h1>
+		return matchesId && matchesStatus;
+	});
 
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-100">
-              <th className="text-left px-4 py-3 text-gray-500 font-semibold">
-                Order
-              </th>
-              <th className="text-left px-4 py-3 text-gray-500 font-semibold">
-                Items
-              </th>
-              <th className="text-left px-4 py-3 text-gray-500 font-semibold">
-                Type
-              </th>
-              <th className="text-left px-4 py-3 text-gray-500 font-semibold">
-                Total
-              </th>
-              <th className="text-left px-4 py-3 text-gray-500 font-semibold">
-                Status
-              </th>
-              <th className="text-left px-4 py-3 text-gray-500 font-semibold">
-                Time
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {orders.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
-                  No orders
-                </td>
-              </tr>
-            ) : (
-              orders.map((order) => (
-                <tr key={order._id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-mono font-medium text-dark">
-                    #{order._id.slice(-6).toUpperCase()}
-                  </td>
-                  <td className="px-4 py-3 text-gray-600 max-w-xs">
-                    <div className="line-clamp-1">
-                      {order.items
-                        .map((i) => `${i.quantity}x ${i.name}`)
-                        .join(", ")}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 capitalize text-gray-600">
-                    {order.deliveryType}
-                  </td>
-                  <td className="px-4 py-3 font-bold text-dark">
-                    {formatPrice(order.totalAmount)}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColors[order.status] || "bg-gray-100"}`}
-                      >
-                        {order.status}
-                      </span>
-                      <select
-                        value={order.status}
-                        onChange={(e) =>
-                          updateStatus(order._id, e.target.value)
-                        }
-                        disabled={updating === order._id}
-                        className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary disabled:opacity-50"
-                      >
-                        {STATUSES.map((s) => (
-                          <option key={s} value={s}>
-                            {s}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-gray-400 text-xs">
-                    {new Date(order.createdAt).toLocaleString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+	useEffect(() => {
+		fetch('/api/orders')
+			.then((r) => r.json())
+			.then(setOrders)
+			.catch(() => {})
+			.finally(() => setLoading(false));
+	}, []);
+
+	async function updateStatus(orderId: string, status: string) {
+		setUpdating(orderId);
+		try {
+			const res = await fetch(`/api/orders/${orderId}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ status }),
+			});
+			if (res.ok) {
+				setOrders((prev) =>
+					prev.map((o) => (o._id === orderId ? { ...o, status } : o)),
+				);
+			}
+		} finally {
+			setUpdating(null);
+		}
+	}
+
+	if (loading) {
+		return (
+			<div className='flex items-center justify-center h-64'>
+				<div className='w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin' />
+			</div>
+		);
+	}
+
+	return (
+		<div>
+			<div className='flex justify-between items-center'>
+				<h1 className='text-2xl font-bold text-dark mb-8'>
+					Orders ({filteredOrders.length})
+				</h1>
+				<div className='mb-4 space-x-1'>
+					<input
+						type='text'
+						placeholder='Search by Order ID...'
+						value={orderIdFilter}
+						onChange={(e) => setOrderIdFilter(e.target.value)}
+						className='w-full md:w-80 border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary'
+					/>{' '}
+					{/* Status Filter */}
+					<select
+						value={statusFilter}
+						onChange={(e) => setStatusFilter(e.target.value)}
+						className='w-full md:w-56 border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary'
+					>
+						<option value=''>All Statuses</option>
+						{STATUSES.map((status) => (
+							<option key={status} value={status}>
+								{status}
+							</option>
+						))}
+					</select>
+				</div>
+			</div>
+
+			<div className='bg-white rounded-2xl shadow-sm overflow-hidden'>
+				<table className='w-full text-sm'>
+					<thead>
+						<tr className='bg-gray-50 border-b border-gray-100'>
+							<th className='text-left px-4 py-3 text-gray-500 font-semibold'>
+								Order
+							</th>
+							<th className='text-left px-4 py-3 text-gray-500 font-semibold'>
+								Items
+							</th>
+							<th className='text-left px-4 py-3 text-gray-500 font-semibold'>
+								Type
+							</th>
+							<th className='text-left px-4 py-3 text-gray-500 font-semibold'>
+								Total
+							</th>
+							<th className='text-left px-4 py-3 text-gray-500 font-semibold'>
+								Status
+							</th>
+							<th className='text-left px-4 py-3 text-gray-500 font-semibold'>
+								Time
+							</th>
+						</tr>
+					</thead>
+					<tbody className='divide-y divide-gray-100'>
+						{filteredOrders.length === 0 ? (
+							<tr>
+								<td colSpan={6} className='px-4 py-8 text-center text-gray-400'>
+									No orders
+								</td>
+							</tr>
+						) : (
+							filteredOrders.map((order) => (
+								<tr key={order._id} className='hover:bg-gray-50'>
+									<td className='px-4 py-3 font-mono font-medium text-dark'>
+										#{order._id.slice(-6).toUpperCase()}
+									</td>
+									<td className='px-4 py-3 text-gray-600 max-w-xs'>
+										<div className='line-clamp-1'>
+											{order.items
+												.map((i) => `${i.quantity}x ${i.name}`)
+												.join(', ')}
+										</div>
+									</td>
+									<td className='px-4 py-3 capitalize text-gray-600'>
+										{order.deliveryType}
+									</td>
+									<td className='px-4 py-3 font-bold text-dark'>
+										{formatPrice(order.totalAmount)}
+									</td>
+									<td className='px-4 py-3'>
+										<div className='flex items-center gap-2'>
+											<span
+												className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColors[order.status] || 'bg-gray-100'}`}
+											>
+												{order.status}
+											</span>
+											<select
+												value={order.status}
+												onChange={(e) =>
+													updateStatus(order._id, e.target.value)
+												}
+												disabled={updating === order._id}
+												className='text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary disabled:opacity-50'
+											>
+												{STATUSES.map((s) => (
+													<option key={s} value={s}>
+														{s}
+													</option>
+												))}
+											</select>
+										</div>
+									</td>
+									<td className='px-4 py-3 text-gray-400 text-xs'>
+										{new Date(order.createdAt).toLocaleString('en-US', {
+											month: 'short',
+											day: 'numeric',
+											hour: 'numeric',
+											minute: '2-digit',
+										})}
+									</td>
+								</tr>
+							))
+						)}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	);
 }
