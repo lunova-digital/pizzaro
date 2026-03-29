@@ -125,6 +125,10 @@ export default function AdminMenuPage() {
 	};
 
 	async function deletePizza(id: string) {
+		const proceed = confirm('Are you sure ?');
+
+		if (!proceed) return null;
+
 		setDeletingId(id);
 		const res = await fetch(`/api/pizzas/${id}`, { method: 'DELETE' });
 		if (res.ok) {
