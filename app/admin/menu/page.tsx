@@ -21,7 +21,6 @@ export default function AdminMenuPage() {
 	const [deletingId, setDeletingId] = useState<string | null>(null);
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [pizzaData, setPizzaData] = useState<Pizza | null>();
-	const [open, setOpen] = useState(false);
 
 	const [showAdd, setShowAdd] = useState(false);
 	const [form, setForm] = useState<{
@@ -126,17 +125,12 @@ export default function AdminMenuPage() {
 	};
 
 	async function deletePizza(id: string) {
-		const procced = confirm('Delete item ?');
-
-		if (!procced) return null;
 		setDeletingId(id);
 		const res = await fetch(`/api/pizzas/${id}`, { method: 'DELETE' });
 		if (res.ok) {
 			setPizzas((prev) => prev.filter((p) => p._id !== id));
-			setOpen(false);
 		}
 		setDeletingId(null);
-		setOpen(false);
 	}
 
 	// upload image
@@ -236,8 +230,6 @@ export default function AdminMenuPage() {
 							setShowAdd(true);
 						}}
 						onDeletePizza={() => deletePizza(pizza?._id)}
-						open={open}
-						setOpen={setOpen}
 					/>
 				))}
 			</div>

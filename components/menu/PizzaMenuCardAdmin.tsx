@@ -1,8 +1,7 @@
 import { formatPrice } from '@/lib/utils';
 import { Pencil, Trash2 } from 'lucide-react';
 import Image from 'next/image';
-import { FC, useState } from 'react';
-import { ConfirmAlert } from '../ConfirmDialogue';
+import { FC } from 'react';
 import { SelectInput } from '../SelectInput';
 
 const PizzaMenuCardAdmin: FC<{
@@ -10,16 +9,7 @@ const PizzaMenuCardAdmin: FC<{
 	onEditPizza: CallableFunction;
 	onDeletePizza: CallableFunction;
 	toggleAvailability: CallableFunction;
-	open: boolean;
-	setOpen: CallableFunction;
-}> = ({
-	pizza,
-	onEditPizza,
-	onDeletePizza,
-	toggleAvailability,
-	open,
-	setOpen,
-}) => {
+}> = ({ pizza, onEditPizza, onDeletePizza, toggleAvailability }) => {
 	return (
 		<div
 			key={pizza._id}

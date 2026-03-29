@@ -2,6 +2,7 @@
 
 import { SelectInput } from '@/components/SelectInput';
 import { formatPrice } from '@/lib/utils';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 interface Order {
@@ -143,6 +144,9 @@ export default function AdminOrdersPage() {
 							</th>
 							<th className='text-left px-4 py-3 text-gray-500 font-semibold'>
 								Time
+							</th>{' '}
+							<th className='text-left px-4 py-3 text-gray-500 font-semibold'>
+								Action
 							</th>
 						</tr>
 					</thead>
@@ -196,6 +200,13 @@ export default function AdminOrdersPage() {
 											hour: 'numeric',
 											minute: '2-digit',
 										})}
+									</td>
+									<td className='px-4 py-3 text-gray-400 text-xs'>
+										<Link href={`/admin/orders/${order?._id}`}>
+											<button className='px-4 py-2 rounded-lg cursor-pointer hover:bg-primary flex items-center justify-center text-primary bg-primary/10 hover:text-gray-50 transition-colors'>
+												View Details
+											</button>
+										</Link>
 									</td>
 								</tr>
 							))
