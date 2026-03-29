@@ -1,5 +1,6 @@
 'use client';
 
+import { SelectInput } from '@/components/SelectInput';
 import { formatPrice } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
@@ -83,6 +84,12 @@ export default function AdminOrdersPage() {
 			</div>
 		);
 	}
+
+	const options = [
+		{ value: '1', label: 'Option One' },
+		{ value: '2', label: 'Option Two' },
+		{ value: '3', label: 'Option Three' },
+	];
 
 	return (
 		<div>
@@ -171,20 +178,14 @@ export default function AdminOrdersPage() {
 											>
 												{order.status}
 											</span>
-											<select
-												value={order.status}
-												onChange={(e) =>
-													updateStatus(order._id, e.target.value)
-												}
-												disabled={updating === order._id}
-												className='text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary disabled:opacity-50'
-											>
-												{STATUSES.map((s) => (
-													<option key={s} value={s}>
-														{s}
-													</option>
-												))}
-											</select>
+
+											<SelectInput
+												options={STATUSES}
+												defaultValue={order?.status}
+												_id={order?._id}
+												onChange={updateStatus}
+												isUpdating={updating === order._id}
+											/>
 										</div>
 									</td>
 									<td className='px-4 py-3 text-gray-400 text-xs'>

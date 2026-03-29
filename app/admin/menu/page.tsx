@@ -1,9 +1,8 @@
 'use client';
 
 import FileDropzone from '@/components/FileIDropzone';
-import { formatPrice } from '@/lib/utils';
-import { Check, Pencil, Plus, Trash2, X } from 'lucide-react';
-import Image from 'next/image';
+import PizzaMenuCardAdmin from '@/components/menu/PizzaMenuCardAdmin';
+import { Plus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface Pizza {
@@ -22,6 +21,7 @@ export default function AdminMenuPage() {
 	const [deletingId, setDeletingId] = useState<string | null>(null);
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [pizzaData, setPizzaData] = useState<Pizza | null>();
+	const [open, setOpen] = useState(false);
 
 	const [showAdd, setShowAdd] = useState(false);
 	const [form, setForm] = useState<{
@@ -53,16 +53,16 @@ export default function AdminMenuPage() {
 		});
 	}, [pizzaData]);
 
-	async function toggleAvailability(pizza: Pizza) {
-		const res = await fetch(`/api/pizzas/${pizza._id}`, {
+	async function toggleAvailability(pizzaId: string, isAvailable: boolean) {
+		const res = await fetch(`/api/pizzas/${pizzaId}`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ isAvailable: !pizza.isAvailable }),
+			body: JSON.stringify({ isAvailable: !isAvailable }),
 		});
 		if (res.ok) {
 			setPizzas((prev) =>
 				prev.map((p) =>
-					p._id === pizza._id ? { ...p, isAvailable: !p.isAvailable } : p,
+					p._id === pizzaId ? { ...p, isAvailable: !p.isAvailable } : p,
 				),
 			);
 		}
@@ -126,13 +126,17 @@ export default function AdminMenuPage() {
 	};
 
 	async function deletePizza(id: string) {
-		if (!confirm('Delete this pizza?')) return;
+		const procced = confirm('Delete item ?');
+
+		if (!procced) return null;
 		setDeletingId(id);
 		const res = await fetch(`/api/pizzas/${id}`, { method: 'DELETE' });
 		if (res.ok) {
 			setPizzas((prev) => prev.filter((p) => p._id !== id));
+			setOpen(false);
 		}
 		setDeletingId(null);
+		setOpen(false);
 	}
 
 	// upload image
@@ -223,69 +227,18 @@ export default function AdminMenuPage() {
 
 			<div className='grid gap-4'>
 				{pizzas.map((pizza) => (
-					<div
-						key={pizza._id}
-						className='bg-white rounded-2xl p-4 shadow-sm flex items-center gap-4'
-					>
-						<div className='relative w-16 h-16 rounded-xl overflow-hidden shrink-0'>
-							{pizza.image ? (
-								<Image
-									src={pizza.image}
-									alt={pizza.name}
-									fill
-									className='object-cover'
-								/>
-							) : (
-								<div className='w-full h-full bg-gray-100' />
-							)}
-						</div>
-
-						<div className='flex-1 min-w-0'>
-							<div className='flex items-center gap-2'>
-								<h3 className='font-bold text-dark'>{pizza.name}</h3>
-								<span className='text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full'>
-									{pizza.category}
-								</span>
-							</div>
-							<p className='text-xs text-gray-400 mt-0.5 line-clamp-1'>
-								{pizza.description}
-							</p>
-							<p className='text-sm font-semibold text-primary mt-1'>
-								From {formatPrice(Math.min(...pizza.sizes.map((s) => s.price)))}
-							</p>
-						</div>
-
-						<div className='flex items-center gap-2 shrink-0'>
-							<button
-								onClick={() => toggleAvailability(pizza)}
-								title={pizza.isAvailable ? 'Available' : 'Unavailable'}
-								className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-									pizza.isAvailable
-										? 'bg-green-100 text-green-600'
-										: 'bg-gray-100 text-gray-400'
-								}`}
-							>
-								<Check className='h-4 w-4' />
-							</button>
-							<button
-								onClick={() => {
-									setPizzaData(pizza);
-									setEditingId(pizza._id);
-									setShowAdd(true);
-								}}
-								className='w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-primary/10 hover:text-primary transition-colors'
-							>
-								<Pencil className='h-4 w-4' />
-							</button>
-							<button
-								onClick={() => deletePizza(pizza._id)}
-								disabled={deletingId === pizza._id}
-								className='w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-primary transition-colors disabled:opacity-50'
-							>
-								<Trash2 className='h-4 w-4' />
-							</button>
-						</div>
-					</div>
+					<PizzaMenuCardAdmin
+						pizza={pizza}
+						toggleAvailability={toggleAvailability}
+						onEditPizza={() => {
+							setPizzaData(pizza);
+							setEditingId(pizza._id);
+							setShowAdd(true);
+						}}
+						onDeletePizza={() => deletePizza(pizza?._id)}
+						open={open}
+						setOpen={setOpen}
+					/>
 				))}
 			</div>
 		</div>
