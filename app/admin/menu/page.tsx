@@ -69,7 +69,6 @@ export default function AdminMenuPage() {
 	}
 
 	const createPizza = async () => {
-		console.log('in');
 		if (!form.name || !form.category) return;
 		const res = await fetch('/api/pizzas', {
 			method: 'POST',
