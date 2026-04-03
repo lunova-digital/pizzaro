@@ -140,7 +140,7 @@ export default function FeaturedPizzas() {
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                         className="object-cover group-hover:scale-110 transition-transform duration-500"
-                        unoptimized={pizza.image.startsWith("/uploads/")}
+                        unoptimized={pizza.image?.startsWith("/uploads/")}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                       {/* Tag */}

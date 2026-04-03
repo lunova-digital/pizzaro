@@ -208,7 +208,7 @@ export default function AdminCombosPage() {
                   alt={combo.name}
                   fill
                   className="object-cover"
-                  unoptimized={combo.image.startsWith("/uploads/")}
+                  unoptimized={combo.image?.startsWith("/uploads/")}
                 />
               </div>
 

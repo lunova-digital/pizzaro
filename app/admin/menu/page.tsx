@@ -2,7 +2,7 @@
 
 import FileDropzone from '@/components/FileIDropzone';
 import PizzaMenuCardAdmin from '@/components/menu/PizzaMenuCardAdmin';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface Pizza {
@@ -23,6 +23,7 @@ export default function AdminMenuPage() {
 	const [deletingId, setDeletingId] = useState<string | null>(null);
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [pizzaData, setPizzaData] = useState<Pizza | null>();
+	const [searchQuery, setSearchQuery] = useState('');
 
 	const [showAdd, setShowAdd] = useState(false);
 	const [form, setForm] = useState<{
@@ -143,7 +144,6 @@ export default function AdminMenuPage() {
 		setDeletingId(null);
 	}
 
-	// upload image
 	const uploadImage = async (file: File) => {
 		const formData = new FormData();
 		formData.append('file', file);
@@ -154,13 +154,16 @@ export default function AdminMenuPage() {
 		});
 
 		const { url } = await res.json();
-		setForm({
+		setForm((prev) => ({
+			...prev,
 			image: url!,
-			category: form?.category,
-			description: form?.description,
-			name: form?.name,
-		});
+		}));
 	};
+
+    const filteredPizzas = pizzas.filter(p => 
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        (p.name_bn && p.name_bn.includes(searchQuery))
+    );
 
 	if (loading) {
 		return (
@@ -174,13 +177,25 @@ export default function AdminMenuPage() {
 		<div>
 			<div className='flex items-center justify-between mb-8'>
 				<h1 className='text-2xl font-bold text-dark'>Menu ({pizzas.length})</h1>
-				<button
-					onClick={() => setShowAdd(true)}
-					className='flex items-center gap-2 px-4 py-2 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors'
-				>
-					<Plus className='h-4 w-4' />
-					Add Pizza
-				</button>
+                <div className='flex items-center gap-4'>
+                    <div className='relative'>
+                        <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400' />
+                        <input
+                            type='text'
+                            placeholder='Search pizzas...'
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className='pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary w-64'
+                        />
+                    </div>
+				    <button
+				    	onClick={() => setShowAdd(true)}
+				    	className='flex items-center gap-2 px-4 py-2 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors'
+				    >
+				    	<Plus className='h-4 w-4' />
+				    	Add Pizza
+				    </button>
+                </div>
 			</div>
 
 			{/* Add form */}
@@ -242,8 +257,9 @@ export default function AdminMenuPage() {
 			)}
 
 			<div className='grid gap-4'>
-				{pizzas.map((pizza) => (
+				{filteredPizzas.map((pizza) => (
 					<PizzaMenuCardAdmin
+						key={pizza._id}
 						pizza={pizza}
 						toggleAvailability={toggleAvailability}
 						onEditPizza={() => {

@@ -50,7 +50,7 @@ export default function ComboCard({ combo }: { combo: Combo }) {
           alt={displayName}
           fill
           className="object-cover"
-          unoptimized={combo.image.startsWith("/uploads/")}
+          unoptimized={combo.image?.startsWith("/uploads/")}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 to-transparent" />
 

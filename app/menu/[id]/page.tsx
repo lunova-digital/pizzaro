@@ -9,11 +9,14 @@ import { useCartStore } from "@/store/cartStore";
 import { formatPrice } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useLang } from "@/contexts/LanguageContext";
 
 interface Pizza {
   _id: string;
   name: string;
+  name_bn?: string;
   description: string;
+  description_bn?: string;
   image: string;
   category: string;
   sizes: { name: string; price: number }[];
@@ -26,6 +29,7 @@ export default function PizzaDetailPage() {
   const params = useParams();
   const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
+  const { t, lang } = useLang();
 
   const [pizza, setPizza] = useState<Pizza | null>(null);
   const [loading, setLoading] = useState(true);
@@ -96,7 +100,7 @@ export default function PizzaDetailPage() {
           className="flex items-center gap-2 text-gray-500 hover:text-dark mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to Menu
+          {t("detail.back")}
         </button>
 
         <div className="grid lg:grid-cols-2 gap-10">
@@ -112,7 +116,7 @@ export default function PizzaDetailPage() {
                 fill
                 className="object-cover"
                 priority
-                unoptimized={pizza.image.startsWith("/uploads/")}
+                unoptimized={pizza.image?.startsWith("/uploads/")}
               />
             </div>
           </motion.div>
@@ -133,22 +137,24 @@ export default function PizzaDetailPage() {
                   <span className="text-sm font-bold text-dark">
                     {pizza.ratingCount && pizza.ratingCount > 0
                       ? pizza.averageRating?.toFixed(1)
-                      : "New"}
+                      : t("detail.new")}
                   </span>
                   {pizza.ratingCount && pizza.ratingCount > 0 ? (
-                    <span className="text-xs text-gray-400">({pizza.ratingCount} ratings)</span>
+                    <span className="text-xs text-gray-400">({pizza.ratingCount} {t("detail.ratings")})</span>
                   ) : null}
                 </div>
               </div>
               <h1 className="mt-3 text-3xl sm:text-4xl font-bold text-dark">
-                {pizza.name}
+                {lang === "bn" && pizza.name_bn ? pizza.name_bn : pizza.name}
               </h1>
-              <p className="mt-3 text-gray-500 text-lg">{pizza.description}</p>
+              <p className="mt-3 text-gray-500 text-lg">
+                {lang === "bn" && pizza.description_bn ? pizza.description_bn : pizza.description}
+              </p>
             </div>
 
             {/* Size */}
             <div>
-              <h3 className="font-semibold text-dark mb-3">Choose Size</h3>
+              <h3 className="font-semibold text-dark mb-3">{t("detail.chooseSize")}</h3>
               <div className="flex gap-3">
                 {pizza.sizes.map((size, i) => (
                   <button
@@ -174,9 +180,9 @@ export default function PizzaDetailPage() {
             {pizza.toppings.length > 0 && (
               <div>
                 <h3 className="font-semibold text-dark mb-3">
-                  Extra Toppings{" "}
+                  {t("detail.extraToppings")}{" "}
                   <span className="text-gray-400 text-sm font-normal">
-                    (+$1.50 each)
+                    (+{formatPrice(1.50)} {t("detail.each")})
                   </span>
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -203,7 +209,7 @@ export default function PizzaDetailPage() {
 
             {/* Quantity */}
             <div>
-              <h3 className="font-semibold text-dark mb-3">Quantity</h3>
+              <h3 className="font-semibold text-dark mb-3">{t("detail.quantity")}</h3>
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -226,7 +232,7 @@ export default function PizzaDetailPage() {
             {/* Add to Cart */}
             <div className="pt-4 border-t border-gray-200">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-gray-500">Total</span>
+                <span className="text-gray-500">{t("detail.total")}</span>
                 <span className="text-2xl font-bold text-dark">
                   {formatPrice(totalPrice)}
                 </span>
@@ -237,13 +243,13 @@ export default function PizzaDetailPage() {
                     onClick={() => setAdded(false)}
                     className="flex-1 py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 bg-green-500 text-white"
                   >
-                    <Check className="h-5 w-5" /> Added to Cart
+                    <Check className="h-5 w-5" /> {t("detail.added")}
                   </button>
                   <Link
                     href="/checkout"
                     className="flex-1 py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 bg-primary text-white hover:bg-primary-dark transition-colors"
                   >
-                    Checkout <ArrowRight className="h-5 w-5" />
+                    {t("detail.checkout")} <ArrowRight className="h-5 w-5" />
                   </Link>
                 </div>
               ) : (
@@ -251,7 +257,7 @@ export default function PizzaDetailPage() {
                   onClick={handleAddToCart}
                   className="w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 bg-primary text-white hover:bg-primary-dark transition-all"
                 >
-                  <ShoppingCart className="h-5 w-5" /> Add to Cart
+                  <ShoppingCart className="h-5 w-5" /> {t("detail.add")}
                 </button>
               )}
             </div>
