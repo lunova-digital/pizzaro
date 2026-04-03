@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Package, ArrowRight } from "lucide-react";
+import { useLang } from "@/contexts/LanguageContext";
 
 export default function TrackOrderPage() {
   const router = useRouter();
+  const { t } = useLang();
   const [orderId, setOrderId] = useState("");
   const [contact, setContact] = useState("");
   const [contactType, setContactType] = useState<"email" | "phone">("email");
@@ -17,11 +19,11 @@ export default function TrackOrderPage() {
     setError("");
 
     if (!orderId.trim()) {
-      setError("Please enter your Order ID");
+      setError(t("trackOrder.errNoId"));
       return;
     }
     if (!contact.trim()) {
-      setError(`Please enter your ${contactType === "email" ? "email address" : "phone number"}`);
+      setError(contactType === "email" ? t("trackOrder.errNoEmail") : t("trackOrder.errNoPhone"));
       return;
     }
 
@@ -32,41 +34,21 @@ export default function TrackOrderPage() {
         ? `email=${encodeURIComponent(contact.trim().toLowerCase())}`
         : `phone=${encodeURIComponent(contact.trim())}`;
 
-      // Short IDs (≤8 chars, e.g. from invoice) need a search lookup to get the full ObjectId
       if (id.length <= 8) {
         const res = await fetch(`/api/orders/search?shortId=${encodeURIComponent(id)}&${param}`);
-        if (res.status === 404) {
-          setError("No order found. Please check your Order ID and contact details.");
-          setLoading(false);
-          return;
-        }
-        if (!res.ok) {
-          setError("Could not find that order. Please double-check your details.");
-          setLoading(false);
-          return;
-        }
+        if (res.status === 404) { setError(t("trackOrder.errNotFound")); setLoading(false); return; }
+        if (!res.ok)             { setError(t("trackOrder.errGeneral"));  setLoading(false); return; }
         const data = await res.json();
         router.push(`/orders/${data._id}?${param}`);
         return;
       }
 
-      // Full ObjectId — verify directly
       const res = await fetch(`/api/orders/${id}?${param}`);
-
-      if (res.status === 404) {
-        setError("No order found. Please check your Order ID and contact details.");
-        setLoading(false);
-        return;
-      }
-      if (!res.ok) {
-        setError("Could not find that order. Please double-check your details.");
-        setLoading(false);
-        return;
-      }
-
+      if (res.status === 404) { setError(t("trackOrder.errNotFound")); setLoading(false); return; }
+      if (!res.ok)             { setError(t("trackOrder.errGeneral"));  setLoading(false); return; }
       router.push(`/orders/${id}?${param}`);
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError(t("trackOrder.errServer"));
       setLoading(false);
     }
   }
@@ -83,10 +65,10 @@ export default function TrackOrderPage() {
             className="text-3xl font-bold text-dark"
             style={{ fontFamily: "var(--font-heading)" }}
           >
-            Track Your Order
+            {t("trackOrder.title")}
           </h1>
           <p className="text-muted-fg mt-2">
-            Enter your Order ID and email or phone number to see your order status.
+            {t("trackOrder.subtitle")}
           </p>
         </div>
 
@@ -97,24 +79,24 @@ export default function TrackOrderPage() {
           {/* Order ID */}
           <div>
             <label className="block text-sm font-semibold text-dark mb-1.5">
-              Order ID
+              {t("trackOrder.orderId")}
             </label>
             <input
               type="text"
-              placeholder="e.g. A1B2C3D4 (short) or full ID"
+              placeholder={t("trackOrder.orderIdPlaceholder")}
               value={orderId}
               onChange={(e) => setOrderId(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-mono text-sm"
             />
             <p className="text-xs text-muted-fg mt-1">
-              Find this in your order confirmation or order history.
+              {t("trackOrder.orderIdHint")}
             </p>
           </div>
 
           {/* Contact type toggle */}
           <div>
             <label className="block text-sm font-semibold text-dark mb-1.5">
-              Verify with
+              {t("trackOrder.verifyWith")}
             </label>
             <div className="flex rounded-xl border border-border overflow-hidden mb-3">
               <button
@@ -126,7 +108,7 @@ export default function TrackOrderPage() {
                     : "bg-surface text-muted-fg hover:bg-muted"
                 }`}
               >
-                Email
+                {t("trackOrder.email")}
               </button>
               <button
                 type="button"
@@ -137,17 +119,13 @@ export default function TrackOrderPage() {
                     : "bg-surface text-muted-fg hover:bg-muted"
                 }`}
               >
-                Phone
+                {t("trackOrder.phone")}
               </button>
             </div>
 
             <input
               type={contactType === "email" ? "email" : "tel"}
-              placeholder={
-                contactType === "email"
-                  ? "you@example.com"
-                  : "(555) 123-4567"
-              }
+              placeholder={contactType === "email" ? t("trackOrder.emailPlaceholder") : t("trackOrder.phonePlaceholder")}
               value={contact}
               onChange={(e) => setContact(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
@@ -170,7 +148,7 @@ export default function TrackOrderPage() {
             ) : (
               <>
                 <Search className="h-4 w-4" />
-                Track Order
+                {t("trackOrder.trackBtn")}
                 <ArrowRight className="h-4 w-4" />
               </>
             )}
@@ -178,11 +156,11 @@ export default function TrackOrderPage() {
         </form>
 
         <p className="text-center text-sm text-muted-fg mt-6">
-          Have an account?{" "}
+          {t("trackOrder.haveAccount")}{" "}
           <a href="/auth/login" className="text-primary font-semibold hover:underline">
-            Sign in
+            {t("trackOrder.signIn")}
           </a>{" "}
-          to see all your orders.
+          {t("trackOrder.toSeeOrders")}
         </p>
       </div>
     </div>

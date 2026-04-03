@@ -5,7 +5,9 @@ import { persist } from "zustand/middleware";
 
 export interface CartItem {
   id: string;
-  pizzaId: string;
+  pizzaId: string;       // holds comboId when type === "combo"
+  comboId?: string;
+  type?: "pizza" | "combo";
   name: string;
   size: string;
   price: number;
@@ -31,6 +33,14 @@ export const useCartStore = create<CartStore>()(
 
       addItem: (item) => {
         const items = get().items;
+
+        // Combos are never merged — each "Add to Cart" creates a fresh entry
+        if (item.type === "combo") {
+          const id = `combo-${item.pizzaId}-${Date.now()}`;
+          set({ items: [...items, { ...item, id }] });
+          return;
+        }
+
         const existing = items.find(
           (i) =>
             i.pizzaId === item.pizzaId &&

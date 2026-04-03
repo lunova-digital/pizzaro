@@ -2,8 +2,16 @@
 
 import Link from "next/link";
 import { Truck, Store, ArrowRight } from "lucide-react";
+import { useLang } from "@/contexts/LanguageContext";
 
 export default function DeliveryBanner() {
+  const { t } = useLang();
+
+  const cards = [
+    { icon: Truck, title: t("delivery.homeTitle"), desc: t("delivery.homeDesc"), bg: "bg-white/15" },
+    { icon: Store, title: t("delivery.storeTitle"), desc: t("delivery.storeDesc"), bg: "bg-white/10" },
+  ];
+
   return (
     <section className="py-20 bg-surface">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -19,25 +27,22 @@ export default function DeliveryBanner() {
                   className="text-4xl lg:text-5xl font-bold leading-tight mb-4"
                   style={{ fontFamily: "var(--font-heading)" }}
                 >
-                  Delivery or Pickup — You Choose!
+                  {t("delivery.title")}
                 </h2>
                 <p className="text-white/80 text-lg mb-8 max-w-md">
-                  Get free delivery on orders over $25, or swing by and pick up your order fresh from the oven.
+                  {t("delivery.subtitle")}
                 </p>
                 <Link
                   href="/menu"
                   className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-white text-primary font-bold text-base hover:bg-orange-50 transition-all shadow-lg shadow-black/10 hover:-translate-y-0.5 active:translate-y-0"
                 >
-                  Order Now
+                  {t("delivery.orderNow")}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                {[
-                  { icon: Truck, title: "Home Delivery", desc: "Free over $25 · 30 min", bg: "bg-white/15" },
-                  { icon: Store, title: "Store Pickup", desc: "Ready in 20 min · No fee", bg: "bg-white/10" },
-                ].map(({ icon: Icon, title, desc, bg }) => (
+                {cards.map(({ icon: Icon, title, desc, bg }) => (
                   <div key={title} className={`${bg} backdrop-blur-sm rounded-2xl p-5 border border-white/20`}>
                     <Icon className="h-7 w-7 text-white mb-3" />
                     <h4 className="text-white font-bold text-base mb-1">{title}</h4>

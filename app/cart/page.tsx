@@ -6,41 +6,44 @@ import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { formatPrice } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLang } from "@/contexts/LanguageContext";
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, clearCart, totalPrice } =
-    useCartStore();
+  const { items, removeItem, updateQuantity, clearCart, totalPrice } = useCartStore();
+  const { t } = useLang();
 
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
         <ShoppingBag className="h-16 w-16 text-gray-300 mb-4" />
         <h2 className="text-2xl font-bold text-dark mb-2">
-          Your cart is empty
+          {t("cart.empty")}
         </h2>
         <p className="text-gray-500 mb-6">
-          Add some delicious pizzas to get started!
+          {t("cart.emptyHint")}
         </p>
         <Link
           href="/menu"
           className="px-8 py-3 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-colors"
         >
-          Browse Menu
+          {t("cart.browseMenu")}
         </Link>
       </div>
     );
   }
 
+  const delivery = totalPrice() >= 25 ? 0 : 4.99;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-10">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-dark">Your Cart</h1>
+          <h1 className="text-3xl font-bold text-dark">{t("cart.title")}</h1>
           <button
             onClick={clearCart}
             className="text-sm text-gray-400 hover:text-primary transition-colors"
           >
-            Clear All
+            {t("cart.clearAll")}
           </button>
         </div>
 
@@ -85,9 +88,7 @@ export default function CartPage() {
                     <div className="mt-3 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() =>
-                            updateQuantity(item.id, item.quantity - 1)
-                          }
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
                           className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50"
                         >
                           <Minus className="h-3 w-3" />
@@ -96,9 +97,7 @@ export default function CartPage() {
                           {item.quantity}
                         </span>
                         <button
-                          onClick={() =>
-                            updateQuantity(item.id, item.quantity + 1)
-                          }
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
                           className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50"
                         >
                           <Plus className="h-3 w-3" />
@@ -118,43 +117,39 @@ export default function CartPage() {
               className="inline-flex items-center gap-2 text-gray-400 hover:text-primary transition-colors mt-4"
             >
               <ArrowLeft className="h-4 w-4" />
-              Continue Shopping
+              {t("cart.continueShopping")}
             </Link>
           </div>
 
           {/* Summary */}
           <div className="bg-white rounded-xl p-6 shadow-sm h-fit sticky top-24">
-            <h2 className="font-bold text-lg text-dark mb-4">Order Summary</h2>
+            <h2 className="font-bold text-lg text-dark mb-4">{t("cart.orderSummary")}</h2>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between text-gray-500">
                 <span>
-                  Subtotal ({items.reduce((s, i) => s + i.quantity, 0)} items)
+                  {t("cart.subtotal")} ({items.reduce((s, i) => s + i.quantity, 0)} {t("cart.items")})
                 </span>
                 <span>{formatPrice(totalPrice())}</span>
               </div>
               <div className="flex justify-between text-gray-500">
-                <span>Delivery</span>
-                <span>{totalPrice() >= 25 ? "Free" : "$4.99"}</span>
+                <span>{t("cart.delivery")}</span>
+                <span>{delivery === 0 ? t("cart.free") : formatPrice(delivery)}</span>
               </div>
               <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-dark text-base">
-                <span>Total</span>
-                <span>
-                  {formatPrice(
-                    totalPrice() + (totalPrice() >= 25 ? 0 : 4.99)
-                  )}
-                </span>
+                <span>{t("cart.total")}</span>
+                <span>{formatPrice(totalPrice() + delivery)}</span>
               </div>
             </div>
             {totalPrice() < 25 && (
               <p className="text-xs text-gray-400 mt-2">
-                Add {formatPrice(25 - totalPrice())} more for free delivery
+                {t("cart.add")} {formatPrice(25 - totalPrice())} {t("cart.freeDelivery")}
               </p>
             )}
             <Link
               href="/checkout"
               className="mt-6 block w-full py-3 bg-primary text-white font-bold text-center rounded-xl hover:bg-primary-dark transition-colors"
             >
-              Proceed to Checkout
+              {t("cart.checkout")}
             </Link>
           </div>
         </div>

@@ -1,7 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { Pizza, MapPin, Phone, Mail, Clock, MessageCircle, Share2, Globe } from "lucide-react";
+import { useLang } from "@/contexts/LanguageContext";
 
 export default function Footer() {
+  const { t } = useLang();
+
   return (
     <footer className="bg-foreground text-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-16 pb-8">
@@ -20,7 +25,7 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-white/60 text-sm leading-relaxed mb-6">
-              Handcrafted pizzas made with the finest ingredients. Delivered hot to your door since 2020.
+              {t("footer.tagline")}
             </p>
             <div className="flex gap-3">
               {[MessageCircle, Share2, Globe].map((Icon, i) => (
@@ -36,7 +41,7 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-bold text-base mb-5">Quick Links</h3>
+            <h3 className="font-bold text-base mb-5">{t("footer.quickLinks")}</h3>
             <ul className="space-y-3">
               {[
                 { href: "/", label: "Home" },
@@ -59,7 +64,7 @@ export default function Footer() {
 
           {/* Contact */}
           <div>
-            <h3 className="font-bold text-base mb-5">Contact Us</h3>
+            <h3 className="font-bold text-base mb-5">{t("footer.contact")}</h3>
             <ul className="space-y-4">
               <li className="flex items-start gap-3 text-sm text-white/60">
                 <MapPin className="h-4 w-4 mt-0.5 text-primary shrink-0" />
@@ -78,19 +83,19 @@ export default function Footer() {
 
           {/* Hours */}
           <div>
-            <h3 className="font-bold text-base mb-5">Opening Hours</h3>
+            <h3 className="font-bold text-base mb-5">{t("footer.hours")}</h3>
             <ul className="space-y-3">
               <li className="flex items-start gap-3 text-sm text-white/60">
                 <Clock className="h-4 w-4 mt-0.5 text-primary shrink-0" />
                 <div>
-                  <p className="font-semibold text-white/80">Mon – Fri</p>
+                  <p className="font-semibold text-white/80">{t("footer.monFri")}</p>
                   <p>11:00 AM – 11:00 PM</p>
                 </div>
               </li>
               <li className="flex items-start gap-3 text-sm text-white/60">
                 <Clock className="h-4 w-4 mt-0.5 text-primary shrink-0" />
                 <div>
-                  <p className="font-semibold text-white/80">Sat – Sun</p>
+                  <p className="font-semibold text-white/80">{t("footer.satSun")}</p>
                   <p>10:00 AM – 12:00 AM</p>
                 </div>
               </li>
@@ -98,18 +103,18 @@ export default function Footer() {
 
             <div className="mt-6 inline-flex items-center gap-2 bg-green-500/20 text-green-400 text-xs font-semibold px-3 py-1.5 rounded-full">
               <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
-              Open Now
+              {t("footer.openNow")}
             </div>
           </div>
         </div>
 
         <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-white/40">
-            &copy; {new Date().getFullYear()} Pizzaro. All rights reserved.
+            &copy; {new Date().getFullYear()} Pizzaro. {t("footer.rights")}
           </p>
           <div className="flex gap-5 text-sm text-white/40">
-            <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link href="#" className="hover:text-white transition-colors">Terms of Service</Link>
+            <Link href="#" className="hover:text-white transition-colors">{t("footer.privacy")}</Link>
+            <Link href="#" className="hover:text-white transition-colors">{t("footer.terms")}</Link>
           </div>
         </div>
       </div>
