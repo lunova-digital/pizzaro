@@ -66,14 +66,6 @@ export default function CheckoutPage() {
 		}
 	}, [session]);
 
-	if (status === 'loading' || items.length === 0) {
-		return (
-			<div className='min-h-screen bg-gray-50 flex items-center justify-center'>
-				<div className='w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin' />
-			</div>
-		);
-	}
-
 	// Fetch and compute applicable offers
 	useEffect(() => {
 		fetch('/api/offers')
@@ -93,7 +85,17 @@ export default function CheckoutPage() {
 				}
 			})
 			.catch(() => {});
-	}, [items]);
+	}, [items, totalPrice]);
+
+	if (status === 'loading' || items.length === 0) {
+		return (
+			<div className='min-h-screen bg-gray-50 flex items-center justify-center'>
+				<div className='w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin' />
+			</div>
+		);
+	}
+
+
 
 	const subtotal = totalPrice();
 	const deliveryFee = deliveryType === 'delivery' && subtotal < 25 ? 4.99 : 0;

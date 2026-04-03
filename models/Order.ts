@@ -37,6 +37,8 @@ export interface IOrder extends Document {
   riderPhone?: string;
   riderName?: string;
   rating?: number;
+  reviewComment?: string;
+  reviewImage?: string;
   totalAmount: number;
   discountAmount?: number;
   offerId?: string;
@@ -47,7 +49,7 @@ export interface IOrder extends Document {
 const OrderItemSchema = new Schema<IOrderItem>({
   pizzaId: { type: String, required: true },
   name: { type: String, required: true },
-  size: { type: String, required: true },
+  size: { type: String },
   quantity: { type: Number, required: true, min: 1 },
   price: { type: Number, required: true },
   toppings: [{ type: String }],
@@ -75,6 +77,8 @@ const OrderSchema = new Schema<IOrder>(
     riderPhone: { type: String },
     riderName: { type: String },
     rating: { type: Number, min: 1, max: 5 },
+    reviewComment: { type: String },
+    reviewImage: { type: String },
     status: {
       type: String,
       enum: [

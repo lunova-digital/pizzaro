@@ -89,7 +89,7 @@ export default function Navbar() {
               className="relative p-2.5 rounded-xl text-muted-fg hover:text-primary hover:bg-orange-50 transition-all"
             >
               <ShoppingCart className="h-5 w-5" />
-              {totalItems > 0 && (
+              {scrolled !== undefined && totalItems > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-white shadow-sm">
                   {totalItems}
                 </span>

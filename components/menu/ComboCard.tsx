@@ -34,7 +34,7 @@ export default function ComboCard({ combo }: { combo: Combo }) {
       size: "",
       price: combo.price,
       quantity: 1,
-      toppings: [],
+      toppings: combo.items,
       image: combo.image,
     });
     setAdded(true);

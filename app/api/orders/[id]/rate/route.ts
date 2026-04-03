@@ -36,7 +36,18 @@ export async function POST(
     return NextResponse.json({ error: "Already rated" }, { status: 400 });
   }
 
+  let reviewerName = order.guestName;
+  if (!reviewerName && order.userId) {
+    const User = (await import('@/models/User')).default;
+    const user = await User.findById(order.userId);
+    reviewerName = user?.name || "Anonymous";
+  } else if (!reviewerName) {
+    reviewerName = "Anonymous";
+  }
+
   order.rating = rating;
+  if (comment) order.reviewComment = comment;
+  if (image) order.reviewImage = image;
   await order.save();
 
   // Update averageRating on each unique pizza in the order
@@ -56,7 +67,7 @@ export async function POST(
   if (comment || image || rating) {
     await Review.create({
       orderId: order._id,
-      guestName: order.guestName || "Anonymous",
+      guestName: reviewerName,
       rating,
       comment,
       image,

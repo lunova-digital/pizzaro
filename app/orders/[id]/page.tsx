@@ -40,6 +40,8 @@ interface Order {
 	riderPhone?: string;
 	riderName?: string;
 	rating?: number;
+	reviewComment?: string;
+	reviewImage?: string;
 	totalAmount: number;
 	createdAt: string;
 }
@@ -206,7 +208,14 @@ export default function OrderDetailPage() {
 		const mapLink = addressStr
 			? ` Google Maps: https://maps.google.com/?q=${encodeURIComponent(addressStr)}`
 			: '';
-		const msg = `Hi! I'm your customer for Order #${shortId}. My delivery address is: ${addressStr ?? 'See order details'}.${mapLink}`;
+            
+		const itemsText = order.items.map(item => {
+			const sizeStr = item.size ? ` (${item.size})` : '';
+			const toppingsStr = item.toppings && item.toppings.length > 0 ? ` + ${item.toppings.join(', ')}` : '';
+			return `• ${item.quantity}x ${item.name}${sizeStr}${toppingsStr}`;
+		}).join('\n');
+
+		const msg = `Hi! I'm your customer for Order #${shortId}. My delivery address is: ${addressStr ?? 'See order details'}.${mapLink}\n\nOrder Items:\n${itemsText}`;
 		return `https://wa.me/${toWaPhone(order.riderPhone)}?text=${encodeURIComponent(msg)}`;
 	}
 	const shortId = order._id.slice(-8).toUpperCase();
@@ -414,11 +423,13 @@ export default function OrderDetailPage() {
 													<td className='px-4 py-3'>
 														<p className='font-medium text-dark'>
 															{item.name}
-															<span className='text-gray-400 font-normal ml-1 text-xs'>
-																({item.size})
-															</span>
+															{(item.size || (item.toppings && item.toppings.length > 0 && !item.size)) ? (
+																<span className='text-gray-400 font-normal ml-1 text-xs'>
+																	({item.size ? item.size : item.toppings.join(', ')})
+																</span>
+															) : null}
 														</p>
-														{item.toppings.length > 0 && (
+														{item.size && item.toppings && item.toppings.length > 0 && (
 															<p className='text-xs text-gray-400 mt-0.5'>
 																+ {item.toppings.join(', ')}
 															</p>
@@ -585,6 +596,16 @@ export default function OrderDetailPage() {
 									<p className='text-sm text-gray-500'>
 										Thanks for your feedback!
 									</p>
+									{(order.reviewComment || ratingSubmitted && reviewComment) && (
+										<p className='text-gray-700 text-sm mt-2 text-center'>
+											"{order.reviewComment || reviewComment}"
+										</p>
+									)}
+									{(order.reviewImage || ratingSubmitted && reviewImage) && (
+										<div className='relative w-32 h-32 mt-3 rounded-xl overflow-hidden border border-gray-100'>
+											<img src={order.reviewImage || reviewImage} alt='Review' className='w-full h-full object-cover' />
+										</div>
+									)}
 								</div>
 							) : (
 								<div className='flex flex-col gap-4'>
