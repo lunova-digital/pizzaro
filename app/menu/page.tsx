@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import CategoryFilter from "@/components/menu/CategoryFilter";
 import PizzaCard from "@/components/menu/PizzaCard";
+import ComboSection from "@/components/menu/ComboSection";
 import { Search } from "lucide-react";
+import { useLang } from "@/contexts/LanguageContext";
 
 interface Pizza {
   _id: string;
@@ -12,6 +14,8 @@ interface Pizza {
   image: string;
   sizes: { name: string; price: number }[];
   category: string;
+  averageRating?: number;
+  ratingCount?: number;
 }
 
 export default function MenuPage() {
@@ -20,6 +24,7 @@ export default function MenuPage() {
   const [selected, setSelected] = useState("All");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const { t } = useLang();
 
   useEffect(() => {
     async function load() {
@@ -54,33 +59,41 @@ export default function MenuPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-bold text-dark">
-            Our Menu
-          </h1>
-          <p className="mt-2 text-gray-500">
-            Choose from our handcrafted selection
-          </p>
-        </div>
+    <div className="min-h-screen bg-bg">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* Search */}
-        <div className="max-w-md mx-auto mb-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+        {/* ── Hero banner ──────────────────────────────────── */}
+        <div className="relative bg-gradient-to-br from-primary via-primary-dark to-red-800 rounded-3xl overflow-hidden mb-10 px-6 sm:px-10 py-12 text-center">
+          {/* Decorative blobs */}
+          <div className="absolute -top-10 -right-10 w-56 h-56 bg-white/5 rounded-full pointer-events-none" />
+          <div className="absolute -bottom-16 -left-14 w-72 h-72 bg-white/5 rounded-full pointer-events-none" />
+          <div className="absolute top-4 left-1/4 w-24 h-24 bg-white/5 rounded-full pointer-events-none" />
+
+          <h1 className="relative z-10 text-3xl sm:text-5xl font-bold text-white leading-tight">
+            {t("menu.title")}
+          </h1>
+          <p className="relative z-10 mt-2 text-orange-100 text-sm sm:text-base">
+            {t("menu.subtitle")}
+          </p>
+
+          {/* Search bar */}
+          <div className="relative z-10 max-w-md mx-auto mt-6">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search pizzas..."
+              placeholder={t("menu.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white border-0 focus:outline-none focus:ring-2 focus:ring-white/50 text-dark placeholder:text-gray-400 shadow-2xl text-sm"
             />
           </div>
         </div>
 
-        {/* Categories */}
-        <div className="flex justify-center mb-10">
+        {/* ── Combo Offers ────────────────────────────────── */}
+        <ComboSection />
+
+        {/* ── Category filter ──────────────────────────────── */}
+        <div className="flex justify-center mb-8">
           <CategoryFilter
             categories={categories}
             selected={selected}
@@ -88,20 +101,38 @@ export default function MenuPage() {
           />
         </div>
 
-        {/* Grid */}
+        {/* ── Results count ────────────────────────────────── */}
+        {!loading && (
+          <p className="text-sm text-muted-fg text-center mb-6">
+            {filtered.length} {filtered.length !== 1 ? t("menu.items") : t("menu.item")}
+            {selected !== "All" ? ` ${t("menu.in")} ${selected}` : ""}
+            {search ? ` ${t("menu.matching")} "${search}"` : ""}
+          </p>
+        )}
+
+        {/* ── Grid ─────────────────────────────────────────── */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[...Array(8)].map((_, i) => (
               <div
                 key={i}
-                className="bg-white rounded-2xl h-80 animate-pulse"
-              />
+                className="bg-white rounded-3xl overflow-hidden border border-border animate-pulse"
+              >
+                <div className="h-56 bg-gray-100" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-gray-100 rounded-full w-3/4" />
+                  <div className="h-3 bg-gray-100 rounded-full" />
+                  <div className="h-3 bg-gray-100 rounded-full w-4/5" />
+                  <div className="h-10 bg-gray-100 rounded-2xl mt-4" />
+                </div>
+              </div>
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <p className="text-xl">No pizzas found</p>
-            <p className="mt-2">Try a different category or search term</p>
+          <div className="text-center py-20 text-muted-fg">
+            <div className="text-5xl mb-4">🍕</div>
+            <p className="text-xl font-bold text-dark">{t("menu.noPizzas")}</p>
+            <p className="mt-1 text-sm">{t("menu.noPizzasHint")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

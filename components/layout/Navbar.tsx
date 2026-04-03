@@ -6,12 +6,14 @@ import { Pizza, ShoppingCart, Menu, X, User, LogOut, Shield, ChevronDown } from 
 import { motion, AnimatePresence } from "framer-motion";
 import { useCartStore } from "@/store/cartStore";
 import { useSession, signOut } from "next-auth/react";
+import { useLang } from "@/contexts/LanguageContext";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const totalItems = useCartStore((s) => s.totalItems());
   const { data: session } = useSession();
+  const { lang, setLang, t } = useLang();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -20,10 +22,10 @@ export default function Navbar() {
   }, []);
 
   const links = [
-    { href: "/", label: "Home" },
-    { href: "/menu", label: "Menu" },
-    { href: "/orders/track", label: "Track Order" },
-    ...(session ? [{ href: "/orders", label: "My Orders" }] : []),
+    { href: "/",             label: t("nav.home") },
+    { href: "/menu",         label: t("nav.menu") },
+    { href: "/orders/track", label: t("nav.trackOrder") },
+    ...(session ? [{ href: "/orders", label: t("nav.myOrders") }] : []),
   ];
 
   return (
@@ -64,6 +66,23 @@ export default function Navbar() {
 
           {/* Right actions */}
           <div className="flex items-center gap-2">
+            {/* Language toggle */}
+            <div className="flex items-center bg-orange-50 rounded-full p-0.5 border border-border">
+              {(["en", "bn"] as const).map((l) => (
+                <button
+                  key={l}
+                  onClick={() => setLang(l)}
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all duration-150 cursor-pointer ${
+                    lang === l
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-muted-fg hover:text-dark"
+                  }`}
+                >
+                  {l === "en" ? "EN" : "বাং"}
+                </button>
+              ))}
+            </div>
+
             {/* Cart */}
             <Link
               href="/cart"
@@ -103,7 +122,7 @@ export default function Navbar() {
                 <button
                   onClick={() => signOut()}
                   className="p-2.5 rounded-xl text-muted-fg hover:text-danger hover:bg-red-50 transition-all"
-                  title="Sign out"
+                  title={t("nav.signOut")}
                 >
                   <LogOut className="h-4.5 w-4.5" />
                 </button>
@@ -114,13 +133,13 @@ export default function Navbar() {
                   href="/auth/login"
                   className="px-4 py-2 rounded-lg text-sm font-semibold text-dark hover:text-primary transition-colors"
                 >
-                  Sign In
+                  {t("nav.signIn")}
                 </Link>
                 <Link
                   href="/auth/register"
                   className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-colors shadow-sm"
                 >
-                  Get Started
+                  {t("nav.getStarted")}
                 </Link>
               </div>
             )}
@@ -158,6 +177,21 @@ export default function Navbar() {
                 </Link>
               ))}
               <div className="pt-3 border-t border-border mt-3 space-y-2">
+                {/* Mobile language toggle */}
+                <div className="flex items-center bg-orange-50 rounded-full p-0.5 border border-border w-fit">
+                  {(["en", "bn"] as const).map((l) => (
+                    <button
+                      key={l}
+                      onClick={() => setLang(l)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                        lang === l ? "bg-primary text-white shadow-sm" : "text-muted-fg"
+                      }`}
+                    >
+                      {l === "en" ? "EN" : "বাং"}
+                    </button>
+                  ))}
+                </div>
+
                 {session ? (
                   <>
                     <Link
@@ -165,7 +199,7 @@ export default function Navbar() {
                       onClick={() => setMobileOpen(false)}
                       className="block px-3 py-2.5 rounded-xl text-dark hover:text-primary hover:bg-orange-50 font-medium"
                     >
-                      Profile
+                      {t("nav.profile")}
                     </Link>
                     {(session.user as { role?: string })?.role === "admin" && (
                       <Link
@@ -173,14 +207,14 @@ export default function Navbar() {
                         onClick={() => setMobileOpen(false)}
                         className="block px-3 py-2.5 rounded-xl text-accent hover:bg-blue-50 font-medium"
                       >
-                        Admin Dashboard
+                        {t("nav.adminDash")}
                       </Link>
                     )}
                     <button
                       onClick={() => { setMobileOpen(false); signOut(); }}
                       className="block w-full text-left px-3 py-2.5 rounded-xl text-danger hover:bg-red-50 font-medium"
                     >
-                      Sign Out
+                      {t("nav.signOut")}
                     </button>
                   </>
                 ) : (
@@ -190,14 +224,14 @@ export default function Navbar() {
                       onClick={() => setMobileOpen(false)}
                       className="block px-4 py-2.5 rounded-xl border border-border text-center font-semibold text-dark"
                     >
-                      Sign In
+                      {t("nav.signIn")}
                     </Link>
                     <Link
                       href="/auth/register"
                       onClick={() => setMobileOpen(false)}
                       className="block px-4 py-2.5 rounded-xl bg-primary text-white text-center font-semibold"
                     >
-                      Get Started
+                      {t("nav.getStarted")}
                     </Link>
                   </div>
                 )}

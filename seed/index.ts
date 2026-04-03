@@ -2,177 +2,234 @@ import mongoose from "mongoose";
 import Pizza from "../models/Pizza";
 import Category from "../models/Category";
 import User from "../models/User";
+import Combo from "../models/Combo";
 import bcrypt from "bcryptjs";
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/pizzaro?authSource=admin";
 
 const categories = [
   {
-    name: "Classic",
+    name: "Regular",
     image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=300&h=200&fit=crop",
     displayOrder: 1,
   },
   {
     name: "Premium",
-    image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=300&h=200&fit=crop",
+    image: "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=300&h=200&fit=crop",
     displayOrder: 2,
   },
   {
-    name: "Veggie",
-    image: "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=300&h=200&fit=crop",
+    name: "Garlic Bread",
+    image: "https://images.unsplash.com/photo-1573140247632-f8fd74997d5c?w=300&h=200&fit=crop",
     displayOrder: 3,
-  },
-  {
-    name: "Specialty",
-    image: "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=300&h=200&fit=crop",
-    displayOrder: 4,
   },
 ];
 
 const pizzas = [
+  // ── REGULAR PIZZAS ─────────────────────────────────────────────
   {
-    name: "Margherita",
-    description: "Classic tomato sauce, fresh mozzarella, basil leaves, and extra virgin olive oil",
+    name: "Margarita Pizza",
+    description: "Tomato sauce, origano, and creamy mozzarella cheese on a perfectly baked crust",
     image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600&h=400&fit=crop",
-    category: "Classic",
+    category: "Regular",
     sizes: [
-      { name: "Small", price: 9.99 },
-      { name: "Medium", price: 12.99 },
-      { name: "Large", price: 15.99 },
+      { name: "Small", price: 179 },
+      { name: "Medium", price: 299 },
+      { name: "Large", price: 499 },
     ],
-    toppings: ["Extra Cheese", "Fresh Basil", "Garlic"],
+    toppings: ["Extra Cheese", "Origano", "Chilli Flakes"],
   },
   {
-    name: "Pepperoni",
-    description: "Loaded with pepperoni, mozzarella cheese, and our signature tomato sauce",
-    image: "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=600&h=400&fit=crop",
-    category: "Classic",
+    name: "Masala Sausage Pizza",
+    description: "Juicy sausage, black olive, green chilli, and mozzarella cheese with a spicy masala kick",
+    image: "https://images.unsplash.com/photo-1555072956-7758afb20e8f?w=600&h=400&fit=crop",
+    category: "Regular",
     sizes: [
-      { name: "Small", price: 10.99 },
-      { name: "Medium", price: 14.99 },
-      { name: "Large", price: 17.99 },
+      { name: "Small", price: 219 },
+      { name: "Medium", price: 379 },
+      { name: "Large", price: 579 },
     ],
-    toppings: ["Extra Pepperoni", "Extra Cheese", "Jalapeños"],
+    toppings: ["Extra Sausage", "Extra Cheese", "Black Olive"],
   },
   {
-    name: "BBQ Chicken",
-    description: "Grilled chicken, BBQ sauce, red onions, cilantro, and smoked gouda",
+    name: "Meatball Special Pizza",
+    description: "Tender meatballs, onion, capsicum, green chilli, and mozzarella cheese",
+    image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&h=400&fit=crop",
+    category: "Regular",
+    sizes: [
+      { name: "Small", price: 239 },
+      { name: "Medium", price: 399 },
+      { name: "Large", price: 599 },
+    ],
+    toppings: ["Extra Meatball", "Onion", "Green Chilli"],
+  },
+  {
+    name: "Spicy Chicken Pizza",
+    description: "Spicy chicken, onion, capsicum, green chilli, tomato, and mozzarella cheese",
     image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop",
+    category: "Regular",
+    sizes: [
+      { name: "Small", price: 279 },
+      { name: "Medium", price: 499 },
+      { name: "Large", price: 779 },
+    ],
+    toppings: ["Extra Chicken", "Jalapeño", "Extra Chilli"],
+  },
+  {
+    name: "BBQ Chicken Pizza",
+    description: "BBQ chicken, capsicum, onion, smoky BBQ sauce, and mozzarella cheese",
+    image: "https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=600&h=400&fit=crop",
+    category: "Regular",
+    sizes: [
+      { name: "Small", price: 299 },
+      { name: "Medium", price: 549 },
+      { name: "Large", price: 799 },
+    ],
+    toppings: ["Extra Chicken", "BBQ Sauce", "Capsicum"],
+  },
+  {
+    name: "Meat Mushroom Pizza",
+    description: "Mushroom, green chilli, black olive, chicken, and mozzarella cheese",
+    image: "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=600&h=400&fit=crop",
+    category: "Regular",
+    sizes: [
+      { name: "Small", price: 319 },
+      { name: "Medium", price: 559 },
+      { name: "Large", price: 849 },
+    ],
+    toppings: ["Extra Mushroom", "Black Olive", "Green Chilli"],
+  },
+
+  // ── PREMIUM PIZZAS ─────────────────────────────────────────────
+  {
+    name: "Sausage Special Pizza",
+    description: "Sausage, mushroom, spicy chicken, capsicum, onion, black olive, and mozzarella cheese",
+    image: "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=600&h=400&fit=crop",
     category: "Premium",
     sizes: [
-      { name: "Small", price: 12.99 },
-      { name: "Medium", price: 15.99 },
-      { name: "Large", price: 19.99 },
+      { name: "Small", price: 379 },
+      { name: "Medium", price: 649 },
+      { name: "Large", price: 869 },
     ],
-    toppings: ["Extra Chicken", "Bacon", "Pineapple"],
+    toppings: ["Extra Sausage", "Mushroom", "Black Olive"],
   },
   {
-    name: "Veggie Supreme",
-    description: "Bell peppers, mushrooms, black olives, red onions, tomatoes, and spinach",
-    image: "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=600&h=400&fit=crop",
-    category: "Veggie",
-    sizes: [
-      { name: "Small", price: 10.99 },
-      { name: "Medium", price: 13.99 },
-      { name: "Large", price: 16.99 },
-    ],
-    toppings: ["Artichokes", "Sun-dried Tomatoes", "Feta Cheese"],
-  },
-  {
-    name: "Hawaiian",
-    description: "Ham, pineapple, mozzarella cheese, and our signature tomato sauce",
-    image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop",
-    category: "Classic",
-    sizes: [
-      { name: "Small", price: 10.99 },
-      { name: "Medium", price: 13.99 },
-      { name: "Large", price: 16.99 },
-    ],
-    toppings: ["Extra Ham", "Extra Pineapple", "Bacon"],
-  },
-  {
-    name: "Meat Lovers",
-    description: "Pepperoni, sausage, bacon, ham, and ground beef with extra mozzarella",
-    image: "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=600&h=400&fit=crop",
+    name: "Beef Becon & Pepperoni",
+    description: "Beef becon, pepperoni, mushroom, capsicum, onion, black olive, green chilli, and mozzarella cheese",
+    image: "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=600&h=400&fit=crop",
     category: "Premium",
     sizes: [
-      { name: "Small", price: 13.99 },
-      { name: "Medium", price: 16.99 },
-      { name: "Large", price: 20.99 },
+      { name: "Small", price: 399 },
+      { name: "Medium", price: 659 },
+      { name: "Large", price: 849 },
     ],
-    toppings: ["Extra Bacon", "Italian Sausage", "Extra Cheese"],
+    toppings: ["Extra Pepperoni", "Beef Becon", "Mushroom"],
   },
   {
-    name: "Mushroom Truffle",
-    description: "Wild mushrooms, truffle oil, fontina cheese, and fresh thyme",
-    image: "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=600&h=400&fit=crop",
-    category: "Specialty",
+    name: "Kebab Smokey Pizza",
+    description: "Chicken kebab, chicken pepperoni, BBQ sauce, onion, black olive, green chilli with loaded mozzarella",
+    image: "https://images.unsplash.com/photo-1594007654729-407eedc4be65?w=600&h=400&fit=crop",
+    category: "Premium",
     sizes: [
-      { name: "Small", price: 14.99 },
-      { name: "Medium", price: 18.99 },
-      { name: "Large", price: 22.99 },
+      { name: "Small", price: 419 },
+      { name: "Medium", price: 679 },
+      { name: "Large", price: 919 },
     ],
-    toppings: ["Extra Truffle Oil", "Parmesan", "Arugula"],
+    toppings: ["Extra Kebab", "BBQ Sauce", "Black Olive"],
   },
   {
-    name: "Mediterranean",
-    description: "Kalamata olives, feta, sun-dried tomatoes, artichokes, and fresh oregano",
-    image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600&h=400&fit=crop",
-    category: "Veggie",
+    name: "Beef Special Pizza",
+    description: "Beef, beef becon, capsicum, onion, green chilli with loaded mozzarella cheese",
+    image: "https://images.unsplash.com/photo-1548365328-8c6db3220e4c?w=600&h=400&fit=crop",
+    category: "Premium",
     sizes: [
-      { name: "Small", price: 11.99 },
-      { name: "Medium", price: 14.99 },
-      { name: "Large", price: 17.99 },
+      { name: "Small", price: 439 },
+      { name: "Medium", price: 689 },
+      { name: "Large", price: 929 },
     ],
-    toppings: ["Roasted Red Peppers", "Pine Nuts", "Extra Feta"],
+    toppings: ["Extra Beef", "Beef Becon", "Capsicum"],
   },
   {
-    name: "Buffalo Chicken",
-    description: "Spicy buffalo chicken, blue cheese crumbles, celery, and ranch drizzle",
+    name: "Caramel Mushroom Pizza",
+    description: "Saucy chicken, sausage, pepperoni, caramel mushroom, onion, green chilli with loaded mozzarella",
+    image: "https://images.unsplash.com/photo-1506354666786-959d6d497f1a?w=600&h=400&fit=crop",
+    category: "Premium",
+    sizes: [
+      { name: "Small", price: 449 },
+      { name: "Medium", price: 699 },
+      { name: "Large", price: 949 },
+    ],
+    toppings: ["Caramel Mushroom", "Extra Sausage", "Pepperoni"],
+  },
+  {
+    name: "Supreme Chatgaiya Pizza",
+    description: "Saucy chicken, sausage, pepperoni, becon, mushroom, capsicum, onion, black olive, and mozzarella cheese",
+    image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600&h=400&fit=crop&sig=2",
+    category: "Premium",
+    sizes: [
+      { name: "Small", price: 469 },
+      { name: "Medium", price: 729 },
+      { name: "Large", price: 969 },
+    ],
+    toppings: ["Extra Sausage", "Pepperoni", "Black Olive"],
+  },
+
+  // ── STUFF GARLIC BREAD ─────────────────────────────────────────
+  {
+    name: "Chicken Garlic Bread",
+    description: "Spicy chicken, mushroom, capsicum, onion, green chilli with mozzarella cheese on crispy garlic bread",
+    image: "https://images.unsplash.com/photo-1573140247632-f8fd74997d5c?w=600&h=400&fit=crop",
+    category: "Garlic Bread",
+    sizes: [{ name: "Regular", price: 199 }],
+    toppings: ["Extra Cheese", "Green Chilli", "Mushroom"],
+  },
+  {
+    name: "Beef Garlic Bread",
+    description: "Masala beef, beef becon, capsicum, onion, green chilli with mozzarella cheese on crispy garlic bread",
+    image: "https://images.unsplash.com/photo-1619740455993-9e612b1af08a?w=600&h=400&fit=crop",
+    category: "Garlic Bread",
+    sizes: [{ name: "Regular", price: 299 }],
+    toppings: ["Extra Beef Becon", "Green Chilli", "Capsicum"],
+  },
+];
+
+const combos = [
+  {
+    name: "Pizza Combo",
+    description: "4 classic pizzas + cold drinks — perfect for groups",
+    items: [
+      "BBQ Chicken Pizza",
+      "Margarita Pizza",
+      "Masala Sausage Pizza",
+      "Meatball Special Pizza",
+      "4 Cold Drinks & Wages",
+    ],
+    price: 999,
+    image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&h=400&fit=crop",
+  },
+  {
+    name: "Meatbox Pizza Combo",
+    description: "BBQ chicken pizza with meatbox, fries & drinks",
+    items: [
+      'BBQ Chicken Pizza 8"',
+      "Meatbox 2pis",
+      "French Fries",
+      "Cold Drinks 2pis",
+    ],
+    price: 749,
     image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop",
-    category: "Specialty",
-    sizes: [
-      { name: "Small", price: 13.99 },
-      { name: "Medium", price: 16.99 },
-      { name: "Large", price: 20.99 },
-    ],
-    toppings: ["Extra Hot Sauce", "Ranch", "Extra Chicken"],
   },
   {
-    name: "Four Cheese",
-    description: "Mozzarella, parmesan, gorgonzola, and ricotta with garlic butter crust",
-    image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=600&h=400&fit=crop",
-    category: "Classic",
-    sizes: [
-      { name: "Small", price: 11.99 },
-      { name: "Medium", price: 14.99 },
-      { name: "Large", price: 18.99 },
+    name: "Burger Pizza Combo",
+    description: "Spicy chicken pizza with burgers, fries & drinks",
+    items: [
+      'Spicy Chicken Pizza 8"',
+      "French Fries",
+      "Chicken Burger 3pis",
+      "Cold Drinks 3pis",
     ],
-    toppings: ["Truffle Oil", "Fresh Basil", "Honey Drizzle"],
-  },
-  {
-    name: "Spicy Diavola",
-    description: "Spicy salami, chili flakes, roasted peppers, and hot honey",
-    image: "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=600&h=400&fit=crop",
-    category: "Specialty",
-    sizes: [
-      { name: "Small", price: 12.99 },
-      { name: "Medium", price: 15.99 },
-      { name: "Large", price: 19.99 },
-    ],
-    toppings: ["Extra Chili", "Jalapeños", "Hot Honey"],
-  },
-  {
-    name: "Garden Fresh",
-    description: "Zucchini, cherry tomatoes, corn, basil pesto, and goat cheese",
+    price: 499,
     image: "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=600&h=400&fit=crop",
-    category: "Veggie",
-    sizes: [
-      { name: "Small", price: 11.99 },
-      { name: "Medium", price: 14.99 },
-      { name: "Large", price: 17.99 },
-    ],
-    toppings: ["Avocado", "Roasted Garlic", "Balsamic Glaze"],
   },
 ];
 
@@ -181,12 +238,20 @@ async function seed() {
     await mongoose.connect(MONGODB_URI);
     console.log("Connected to MongoDB");
 
-    // Skip if already seeded
-    const existing = await Pizza.countDocuments();
-    if (existing > 0) {
-      console.log(`Database already has ${existing} pizzas — skipping seed.`);
-      await mongoose.connection.close();
-      process.exit(0);
+    // Skip if already seeded (use FORCE_RESEED=true to override)
+    if (process.env.FORCE_RESEED !== "true") {
+      const existing = await Pizza.countDocuments();
+      if (existing > 0) {
+        console.log(`Database already has ${existing} pizzas — skipping seed. Set FORCE_RESEED=true to override.`);
+        await mongoose.connection.close();
+        process.exit(0);
+      }
+    } else {
+      console.log("FORCE_RESEED=true — clearing existing data...");
+      await Pizza.deleteMany({});
+      await Category.deleteMany({});
+      await Combo.deleteMany({});
+      console.log("Cleared existing pizzas, categories, and combos");
     }
 
     // Seed categories
@@ -196,6 +261,10 @@ async function seed() {
     // Seed pizzas
     await Pizza.insertMany(pizzas);
     console.log(`Seeded ${pizzas.length} pizzas`);
+
+    // Seed combos
+    await Combo.insertMany(combos);
+    console.log(`Seeded ${combos.length} combos`);
 
     // Create admin user
     const adminExists = await User.findOne({ email: "admin@pizzaro.com" });
