@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-import { Pizza, LayoutDashboard, ClipboardList, UtensilsCrossed, X, Gift } from "lucide-react";
+import { Pizza, LayoutDashboard, ClipboardList, UtensilsCrossed, X, Gift, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
-  { href: "/admin",        label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/orders", label: "Orders",    icon: ClipboardList },
-  { href: "/admin/menu",   label: "Menu",      icon: UtensilsCrossed },
-  { href: "/admin/combos", label: "Combos",    icon: Gift },
+  { href: "/admin",         label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/orders",  label: "Orders",    icon: ClipboardList },
+  { href: "/admin/menu",    label: "Menu",      icon: UtensilsCrossed },
+  { href: "/admin/combos",  label: "Combos",    icon: Gift },
+  { href: "/admin/offers",  label: "Offers",    icon: Tag },
 ];
 
 interface AdminSidebarProps {

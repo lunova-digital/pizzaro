@@ -9,6 +9,8 @@ export interface ICombo extends Document {
   price: number;
   image: string;
   isAvailable: boolean;
+  isFeatured: boolean;
+  offerEndsAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,6 +25,8 @@ const ComboSchema = new Schema<ICombo>(
     price:          { type: Number, required: true },
     image:          { type: String, required: true },
     isAvailable:    { type: Boolean, default: true },
+    isFeatured:     { type: Boolean, default: false },
+    offerEndsAt:    { type: Date },
   },
   { timestamps: true }
 );

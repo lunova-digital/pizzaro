@@ -37,14 +37,23 @@ export default function PizzaDetailPage() {
   const [selectedToppings, setSelectedToppings] = useState<string[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`/api/pizzas/${params.id}`);
+        const [res, reviewsRes] = await Promise.all([
+          fetch(`/api/pizzas/${params.id}`),
+          fetch(`/api/reviews?pizzaId=${params.id}`)
+        ]);
         if (!res.ok) throw new Error("Not found");
         const data = await res.json();
         setPizza(data);
+        
+        if (reviewsRes.ok) {
+          const rData = await reviewsRes.json();
+          if (Array.isArray(rData)) setReviews(rData);
+        }
       } catch {
         router.push("/menu");
       } finally {
@@ -263,6 +272,43 @@ export default function PizzaDetailPage() {
             </div>
           </motion.div>
         </div>
+
+        {/* Customer Reviews Section */}
+        {reviews.length > 0 && (
+          <div className="mt-20 pt-10 border-t border-gray-200">
+            <h2 className="text-2xl font-bold text-dark mb-8 flex items-center gap-2">
+              <Star className="h-6 w-6 text-yellow-400 fill-yellow-400" />
+              {lang === "bn" ? "ক্রেতাদের রিভিউ" : "Customer Reviews"}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {reviews.map((r, i) => (
+                <div key={i} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-orange-400 text-white font-bold flex items-center justify-center shrink-0">
+                      {r.guestName?.substring(0, 2).toUpperCase() || "AN"}
+                    </div>
+                    <div>
+                      <p className="font-bold text-dark text-sm leading-none">{r.guestName || "Anonymous"}</p>
+                      <p className="text-xs text-gray-400 mt-1">{new Date(r.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-1 mb-3">
+                    {[...Array(r.rating)].map((_, j) => <Star key={j} className="h-4 w-4 text-yellow-500 fill-yellow-500" />)}
+                  </div>
+                  
+                  {r.comment && <p className="text-gray-700 text-sm leading-relaxed mb-4 flex-1">&ldquo;{r.comment}&rdquo;</p>}
+                  
+                  {r.image && (
+                    <div className="relative w-full h-32 rounded-xl overflow-hidden mt-auto border border-gray-100">
+                      <Image src={r.image} alt="Review Note" fill className="object-cover" unoptimized={r.image.startsWith("/uploads/")} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

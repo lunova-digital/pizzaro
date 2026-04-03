@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Order from "@/models/Order";
 import Pizza from "@/models/Pizza";
+import Review from "@/models/Review";
 
 export async function POST(
   req: NextRequest,
@@ -11,6 +12,8 @@ export async function POST(
   const { id } = await params;
   const body = await req.json();
   const rating = Number(body.rating);
+  const comment = body.comment?.trim() || "";
+  const image = body.image || "";
 
   if (!rating || rating < 1 || rating > 5) {
     return NextResponse.json({ error: "Rating must be 1–5" }, { status: 400 });
@@ -47,6 +50,18 @@ export async function POST(
     pizza.ratingCount = newCount;
     pizza.averageRating = Math.round(newAvg * 10) / 10;
     await pizza.save();
+  }
+
+  // Create the Review dynamically
+  if (comment || image || rating) {
+    await Review.create({
+      orderId: order._id,
+      guestName: order.guestName || "Anonymous",
+      rating,
+      comment,
+      image,
+      pizzaIds,
+    });
   }
 
   return NextResponse.json({ success: true, rating });

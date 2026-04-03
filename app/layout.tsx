@@ -5,6 +5,8 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import SessionProvider from "@/components/SessionProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import OfferBanner from "@/components/home/OfferBanner";
+import OfferPopup from "@/components/home/OfferPopup";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,6 +46,8 @@ export default function RootLayout({
         <SessionProvider>
           <LanguageProvider>
             <Navbar />
+            <OfferBanner />
+            <OfferPopup />
             <main className="flex-1">{children}</main>
             <Footer />
           </LanguageProvider>

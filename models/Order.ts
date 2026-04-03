@@ -38,6 +38,8 @@ export interface IOrder extends Document {
   riderName?: string;
   rating?: number;
   totalAmount: number;
+  discountAmount?: number;
+  offerId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -85,7 +87,9 @@ const OrderSchema = new Schema<IOrder>(
       ],
       default: "placed",
     },
-    totalAmount: { type: Number, required: true },
+    totalAmount:    { type: Number, required: true },
+    discountAmount: { type: Number, default: 0 },
+    offerId:        { type: String },
   },
   { timestamps: true }
 );

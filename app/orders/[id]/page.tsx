@@ -17,6 +17,8 @@ import {
 	Phone,
 	Mail,
 	Star,
+	Image as ImageIcon,
+	X,
 } from 'lucide-react';
 
 interface Order {
@@ -89,6 +91,27 @@ export default function OrderDetailPage() {
 	const [selectedRating, setSelectedRating] = useState(0);
 	const [ratingSubmitted, setRatingSubmitted] = useState(false);
 	const [ratingLoading, setRatingLoading] = useState(false);
+	const [reviewComment, setReviewComment] = useState('');
+	const [reviewImage, setReviewImage] = useState('');
+	const [uploadingImage, setUploadingImage] = useState(false);
+
+	const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (!file) return;
+		setUploadingImage(true);
+		const formData = new FormData();
+		formData.append('file', file);
+		try {
+			const res = await fetch('/api/upload', {
+				method: 'POST',
+				body: formData,
+			});
+			const data = await res.json();
+			if (data.url) setReviewImage(data.url);
+		} finally {
+			setUploadingImage(false);
+		}
+	};
 
 	const fetchOrder = useCallback(async () => {
 		try {
@@ -130,7 +153,11 @@ export default function OrderDetailPage() {
 			const res = await fetch(`/api/orders/${order._id}/rate`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ rating: selectedRating }),
+				body: JSON.stringify({
+					rating: selectedRating,
+					comment: reviewComment,
+					image: reviewImage,
+				}),
 			});
 			if (res.ok) setRatingSubmitted(true);
 		} finally {
@@ -583,14 +610,43 @@ export default function OrderDetailPage() {
 											</button>
 										))}
 									</div>
+									
 									{selectedRating > 0 && (
-										<button
-											onClick={submitRating}
-											disabled={ratingLoading}
-											className='self-start px-6 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors text-sm disabled:opacity-60'
-										>
-											{ratingLoading ? 'Submitting…' : 'Submit Rating'}
-										</button>
+										<div className='flex flex-col gap-3 mt-2 animate-in fade-in slide-in-from-top-4 duration-500'>
+											<textarea 
+												placeholder='Write a review (optional)' 
+												value={reviewComment}
+												onChange={(e) => setReviewComment(e.target.value)}
+												className='w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none'
+												rows={3}
+											/>
+											
+											{reviewImage ? (
+												<div className='relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200 group'>
+													<img src={reviewImage} alt='Review attachment' className='w-full h-full object-cover' />
+													<button 
+														onClick={() => setReviewImage('')}
+														className='absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-xl'
+													>
+														<X className='w-5 h-5' />
+													</button>
+												</div>
+											) : (
+												<label className='flex items-center justify-center gap-2 w-full py-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-primary/50 transition-colors text-sm text-gray-500'>
+													<input type='file' accept='image/*' className='hidden' onChange={handleImageUpload} disabled={uploadingImage} />
+													<ImageIcon className='w-4 h-4' />
+													{uploadingImage ? 'Uploading...' : 'Attach a Photo (optional)'}
+												</label>
+											)}
+
+											<button
+												onClick={submitRating}
+												disabled={ratingLoading || uploadingImage}
+												className='mt-2 w-full sm:w-auto self-start px-6 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors text-sm disabled:opacity-60'
+											>
+												{ratingLoading ? 'Submitting…' : 'Submit Review'}
+											</button>
+										</div>
 									)}
 								</div>
 							)}

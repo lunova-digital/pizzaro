@@ -86,7 +86,7 @@ export default function Hero() {
             </div>
           </motion.div>
 
-          {/* Image side */}
+          {/* Video side */}
           <motion.div
             initial={{ scale: 0.93 }}
             animate={{ scale: 1 }}
@@ -116,20 +116,23 @@ export default function Hero() {
                     <Star key={i} className="h-3.5 w-3.5 fill-secondary text-secondary" />
                   ))}
                 </div>
-                <span className="text-xs font-bold text-dark">4.9 / 5</span>
+                <span className="text-xs font-bold text-dark">5.0 / 5</span>
               </div>
               <p className="text-xs text-muted-fg mt-0.5">{t("hero.reviews")}</p>
             </div>
 
-            <div className="relative aspect-square max-w-lg mx-auto">
-              <Image
-                src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=700&h=700&fit=crop"
-                alt="Fresh delicious pizza"
-                width={600}
-                height={600}
-                className="rounded-[2.5rem] shadow-2xl shadow-orange-200 object-cover w-full h-full"
-                priority
+            {/* YouTube video */}
+            <div className="relative max-w-lg mx-auto aspect-square rounded-[2.5rem] overflow-hidden shadow-2xl shadow-orange-200 border-4 border-surface">
+              <iframe
+                className="absolute inset-0 w-[300%] h-full -left-[100%]"
+                src="https://www.youtube.com/embed/r9M9LC1V5-g?autoplay=1&mute=1&loop=1&playlist=r9M9LC1V5-g&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1"
+                title="Pizzaro video"
+                frameBorder="0"
+                allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
               />
+              {/* Subtle overlay so it blends with the design */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none rounded-[2.5rem]" />
             </div>
           </motion.div>
         </div>
@@ -137,3 +140,4 @@ export default function Hero() {
     </section>
   );
 }
+

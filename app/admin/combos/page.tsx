@@ -16,6 +16,8 @@ interface Combo {
   price: number;
   image: string;
   isAvailable: boolean;
+  isFeatured?: boolean;
+  offerEndsAt?: string;
 }
 
 const EMPTY_FORM = {
@@ -27,6 +29,8 @@ const EMPTY_FORM = {
   price: 0,
   image: "",
   isAvailable: true,
+  isFeatured: false,
+  offerEndsAt: "",
 };
 
 export default function AdminCombosPage() {
@@ -65,6 +69,8 @@ export default function AdminCombosPage() {
       price: combo.price,
       image: combo.image,
       isAvailable: combo.isAvailable,
+      isFeatured: combo.isFeatured || false,
+      offerEndsAt: combo.offerEndsAt ? new Date(combo.offerEndsAt).toISOString().slice(0, 16) : "",
     });
     setEditingId(combo._id);
     setError("");
@@ -122,6 +128,8 @@ export default function AdminCombosPage() {
           price: form.price,
           image: form.image.trim(),
           isAvailable: form.isAvailable,
+          isFeatured: form.isFeatured,
+          offerEndsAt: form.offerEndsAt ? new Date(form.offerEndsAt).toISOString() : null,
         }),
       });
       if (!res.ok) {
@@ -340,6 +348,17 @@ export default function AdminCombosPage() {
               </div>
 
               <div>
+                <label className="block text-sm font-semibold text-dark mb-1.5">Offer Ends At (Optional)</label>
+                <input
+                  type="datetime-local"
+                  value={form.offerEndsAt}
+                  onChange={(e) => setForm((f) => ({ ...f, offerEndsAt: e.target.value }))}
+                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                />
+                <p className="text-xs text-muted-fg mt-1">Leave empty if this is a permanent combo offer.</p>
+              </div>
+
+              <div>
                 <label className="block text-sm font-semibold text-dark mb-1.5">Image</label>
                 <FileDropzone uploadImage={uploadImage} image={form.image} />
                 {uploading && <p className="text-xs text-muted-fg mt-1">Uploading...</p>}
@@ -356,22 +375,42 @@ export default function AdminCombosPage() {
                 )}
               </div>
 
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setForm((f) => ({ ...f, isAvailable: !f.isAvailable }))}
-                  className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                    form.isAvailable ? "bg-primary" : "bg-gray-200"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                      form.isAvailable ? "translate-x-5" : "translate-x-0.5"
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setForm((f) => ({ ...f, isAvailable: !f.isAvailable }))}
+                    className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
+                      form.isAvailable ? "bg-primary" : "bg-gray-200"
                     }`}
-                  />
-                </button>
-                <span className="text-sm font-medium text-dark">
-                  {form.isAvailable ? "Visible to customers" : "Hidden from menu"}
-                </span>
+                  >
+                    <span
+                      className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                        form.isAvailable ? "translate-x-5" : "translate-x-0.5"
+                      }`}
+                    />
+                  </button>
+                  <span className="text-sm font-medium text-dark">
+                    {form.isAvailable ? "Visible to customers" : "Hidden from menu"}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setForm((f) => ({ ...f, isFeatured: !f.isFeatured }))}
+                    className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
+                      form.isFeatured ? "bg-red-600" : "bg-gray-200"
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                        form.isFeatured ? "translate-x-5" : "translate-x-0.5"
+                      }`}
+                    />
+                  </button>
+                  <span className="text-sm font-medium text-dark">
+                    {form.isFeatured ? "Featured on Homepage" : "Standard Combo"}
+                  </span>
+                </div>
               </div>
             </div>
 

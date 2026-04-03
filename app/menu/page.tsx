@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import CategoryFilter from "@/components/menu/CategoryFilter";
 import PizzaCard from "@/components/menu/PizzaCard";
 import ComboSection from "@/components/menu/ComboSection";
 import { Search } from "lucide-react";
 import { useLang } from "@/contexts/LanguageContext";
+import { useSearchParams } from "next/navigation";
 
 interface Pizza {
   _id: string;
@@ -25,10 +26,13 @@ interface Category {
   name_bn?: string;
 }
 
-export default function MenuPage() {
+function MenuContent() {
+  const searchParams = useSearchParams();
+  const initialCategory = searchParams.get("category") || "All";
+
   const [pizzas, setPizzas] = useState<Pizza[]>([]);
   const [categories, setCategories] = useState<Category[]>([{ name: "All" }]);
-  const [selected, setSelected] = useState("All");
+  const [selected, setSelected] = useState(initialCategory);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const { t } = useLang();
@@ -153,5 +157,20 @@ export default function MenuPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function MenuPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-bg flex items-center justify-center p-8">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-muted-fg font-medium">Loading menu...</p>
+        </div>
+      </div>
+    }>
+      <MenuContent />
+    </Suspense>
   );
 }

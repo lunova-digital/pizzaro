@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/cartStore';
 import { formatPrice } from '@/lib/utils';
-import { MapPin, Store, CreditCard, User, LocateFixed } from 'lucide-react';
+import { MapPin, Store, CreditCard, User, LocateFixed, Tag } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const MapPicker = dynamic(() => import('@/components/MapPicker'), {
@@ -41,6 +41,11 @@ export default function CheckoutPage() {
 	const [submitted, setSubmitted] = useState(false);
 	const [locating, setLocating] = useState(false);
 
+	// Active offers
+	type ActiveOffer = { _id: string; type: string; discountValue: number; targetType: string; targetId?: string; minOrderValue?: number; title_bn?: string; title?: string; };
+	const [activeOffer, setActiveOffer] = useState<ActiveOffer | null>(null);
+	const [discountAmount, setDiscountAmount] = useState(0);
+
 	const isGuest = status === 'unauthenticated';
 
 	useEffect(() => {
@@ -69,9 +74,30 @@ export default function CheckoutPage() {
 		);
 	}
 
+	// Fetch and compute applicable offers
+	useEffect(() => {
+		fetch('/api/offers')
+			.then(r => r.json())
+			.then((offers: ActiveOffer[]) => {
+				if (!Array.isArray(offers) || offers.length === 0) return;
+				const subtotal = totalPrice();
+				for (const offer of offers) {
+					if (offer.minOrderValue && subtotal < offer.minOrderValue) continue;
+					if (offer.targetType !== 'all') continue; // simple: only all-cart for now
+					const discount = offer.type === 'percentage'
+						? +(subtotal * offer.discountValue / 100).toFixed(2)
+						: Math.min(offer.discountValue, subtotal);
+					setActiveOffer(offer);
+					setDiscountAmount(discount);
+					break;
+				}
+			})
+			.catch(() => {});
+	}, [items]);
+
 	const subtotal = totalPrice();
 	const deliveryFee = deliveryType === 'delivery' && subtotal < 25 ? 4.99 : 0;
-	const total = subtotal + deliveryFee;
+	const total = Math.max(0, subtotal - discountAmount) + deliveryFee;
 
 	function handleGetLocation() {
 		if (!navigator.geolocation) {
@@ -164,6 +190,8 @@ export default function CheckoutPage() {
 				addressNotes: addressNotes.trim() || undefined,
 				phone,
 				totalAmount: total,
+				discountAmount: discountAmount || 0,
+				offerId: activeOffer?._id,
 				status: 'placed',
 			};
 
@@ -449,6 +477,12 @@ export default function CheckoutPage() {
 								<span>Subtotal</span>
 								<span>{formatPrice(subtotal)}</span>
 							</div>
+							{discountAmount > 0 && activeOffer && (
+								<div className='flex justify-between text-green-600'>
+									<span className='flex items-center gap-1'><Tag className='h-3.5 w-3.5' />{activeOffer.title_bn || activeOffer.title}</span>
+									<span>-{formatPrice(discountAmount)}</span>
+								</div>
+							)}
 							<div className='flex justify-between text-gray-500'>
 								<span>Delivery</span>
 								<span>

@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
   await dbConnect();
   const { searchParams } = new URL(request.url);
   const all = searchParams.get("all");
+  const featured = searchParams.get("featured");
 
   if (all === "true") {
     const session = await auth();
@@ -17,7 +18,10 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const combos = await Combo.find({ isAvailable: true }).sort({ createdAt: 1 });
+  const query: Record<string, unknown> = { isAvailable: true };
+  if (featured === "true") query.isFeatured = true;
+
+  const combos = await Combo.find(query).sort({ createdAt: 1 });
   return Response.json(combos);
 }
 
