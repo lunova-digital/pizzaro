@@ -45,9 +45,13 @@ export default function AdminOffersPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm());
+  const [categories, setCategories] = useState<{ _id: string; name: string }[]>([]);
+  const [pizzas, setPizzas] = useState<{ _id: string; name: string }[]>([]);
 
   useEffect(() => {
     fetchOffers();
+    fetch("/api/categories").then(r => r.json()).then(setCategories).catch(() => {});
+    fetch("/api/pizzas").then(r => r.json()).then(setPizzas).catch(() => {});
   }, []);
 
   async function fetchOffers() {
@@ -187,7 +191,17 @@ export default function AdminOffersPage() {
               </select>
             </div>
             {form.targetType !== "all" && (
-              <input placeholder={form.targetType === "category" ? "ক্যাটাগরির নাম (e.g. Premium)" : "পিৎজা আইডি"} value={form.targetId} onChange={e => setForm({ ...form, targetId: e.target.value })} className="px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-primary" />
+              form.targetType === "category" ? (
+                <select value={form.targetId} onChange={e => setForm({ ...form, targetId: e.target.value })} className="px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-primary">
+                  <option value="">-- ক্যাটাগরি নির্বাচন করুন --</option>
+                  {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+                </select>
+              ) : (
+                <select value={form.targetId} onChange={e => setForm({ ...form, targetId: e.target.value })} className="px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-primary">
+                  <option value="">-- পিৎজা নির্বাচন করুন --</option>
+                  {pizzas.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
+                </select>
+              )
             )}
             <div>
               <label className="text-xs text-gray-500 mb-1 block">ন্যূনতম অর্ডার (৳)</label>

@@ -24,6 +24,7 @@ export default function AdminMenuPage() {
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [pizzaData, setPizzaData] = useState<Pizza | null>();
 	const [searchQuery, setSearchQuery] = useState('');
+	const [categories, setCategories] = useState<{ _id: string; name: string }[]>([]);
 
 	const [showAdd, setShowAdd] = useState(false);
 	const [form, setForm] = useState<{
@@ -50,6 +51,11 @@ export default function AdminMenuPage() {
 			.then(setPizzas)
 			.catch(() => {})
 			.finally(() => setLoading(false));
+
+		fetch('/api/categories')
+			.then((r) => r.json())
+			.then(setCategories)
+			.catch(() => {});
 	}, []);
 
 	useEffect(() => {
@@ -173,6 +179,21 @@ export default function AdminMenuPage() {
 		);
 	}
 
+	const createCategory = async () => {
+		const catName = prompt("Enter the new Category name:");
+		if (!catName) return;
+		
+		const res = await fetch("/api/categories", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ name: catName, name_bn: "", image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=300&h=200&fit=crop" })
+		});
+		if (res.ok) {
+			const newCat = await res.json();
+			setCategories(prev => [...prev, newCat]);
+		}
+	};
+
 	return (
 		<div>
 			<div className='flex items-center justify-between mb-8'>
@@ -188,6 +209,12 @@ export default function AdminMenuPage() {
                             className='pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary w-64'
                         />
                     </div>
+					<button
+						onClick={createCategory}
+						className='flex items-center gap-2 px-4 py-2 bg-orange-100 text-primary font-semibold rounded-xl hover:bg-orange-200 transition-colors'
+					>
+						+ Add Category
+					</button>
 				    <button
 				    	onClick={() => setShowAdd(true)}
 				    	className='flex items-center gap-2 px-4 py-2 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors'
@@ -220,12 +247,16 @@ export default function AdminMenuPage() {
 							onChange={(e) => setForm({ ...form, name_bn: e.target.value })}
 							className='px-3 py-2 rounded-lg border border-orange-200 text-sm focus:outline-none focus:border-primary'
 						/>
-						<input
-							placeholder='Category'
+						<select
 							value={form.category}
 							onChange={(e) => setForm({ ...form, category: e.target.value })}
 							className='px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-primary'
-						/>
+						>
+							<option value=''>-- Select Category --</option>
+							{categories.map((c) => (
+								<option key={c._id} value={c.name}>{c.name}</option>
+							))}
+						</select>
 					</div>
 					<input
 						placeholder='Description (EN)'

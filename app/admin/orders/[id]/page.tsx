@@ -93,6 +93,8 @@ export default function OrderDetailPage() {
 	const [riderForm, setRiderForm] = useState({ name: '', phone: '' });
 	const [riderSaving, setRiderSaving] = useState(false);
 	const [riderSaved, setRiderSaved] = useState(false);
+	const [riders, setRiders] = useState<{ _id: string; name: string; phone: string }[]>([]);
+	const [showNewRiderForm, setShowNewRiderForm] = useState(false);
 
 	const fetchOrder = useCallback(async () => {
 		try {
@@ -116,6 +118,15 @@ export default function OrderDetailPage() {
 		return () => clearInterval(interval);
 	}, [fetchOrder]);
 
+	useEffect(() => {
+		fetch('/api/riders')
+			.then((r) => r.json())
+			.then((data) => {
+				if (Array.isArray(data)) setRiders(data);
+			})
+			.catch(() => {});
+	}, []);
+
 	// Sync riderForm with loaded order data
 	useEffect(() => {
 		if (order) {
@@ -130,6 +141,19 @@ export default function OrderDetailPage() {
 		if (!order) return;
 		setRiderSaving(true);
 		try {
+			if (showNewRiderForm && riderForm.name && riderForm.phone) {
+				const riderRes = await fetch('/api/riders', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ name: riderForm.name.trim(), phone: riderForm.phone.trim() })
+				});
+				if (riderRes.ok) {
+					const newRider = await riderRes.json();
+					setRiders(prev => [...prev, newRider].sort((a,b) => a.name.localeCompare(b.name)));
+					setShowNewRiderForm(false);
+				}
+			}
+
 			const res = await fetch(`/api/orders/${order._id}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
@@ -290,34 +314,74 @@ export default function OrderDetailPage() {
 								<Truck className='h-5 w-5 text-primary' />
 								Rider Assignment
 							</h2>
-							<div className='grid sm:grid-cols-2 gap-3 mb-4'>
-								<div>
-									<label className='block text-xs font-semibold text-gray-500 mb-1'>Rider Name</label>
-									<input
-										value={riderForm.name}
-										onChange={(e) => setRiderForm((f) => ({ ...f, name: e.target.value }))}
-										placeholder='e.g. Rahim'
-										className='w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary'
-									/>
+							{!showNewRiderForm ? (
+								<div className='grid sm:grid-cols-2 gap-3 mb-4 items-end'>
+									<div className='col-span-full sm:col-span-1'>
+										<label className='block text-xs font-semibold text-gray-500 mb-1'>Select Existing Rider</label>
+										<select
+											className='w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary'
+											value={riderForm.phone}
+											onChange={(e) => {
+												const selected = riders.find((r) => r.phone === e.target.value);
+												if (selected) {
+													setRiderForm({ name: selected.name, phone: selected.phone });
+												} else {
+													setRiderForm({ name: '', phone: '' });
+												}
+											}}
+										>
+											<option value=''>-- Select Rider --</option>
+											{riders.map((r) => (
+												<option key={r._id} value={r.phone}>{r.name} ({r.phone})</option>
+											))}
+										</select>
+									</div>
+									<div className='col-span-full sm:col-span-1'>
+										<button
+											onClick={() => {
+												setShowNewRiderForm(true);
+												setRiderForm({ name: '', phone: '' });
+											}}
+											className='text-sm text-primary font-medium hover:underline px-2 py-2.5'
+										>
+											+ Add New Rider
+										</button>
+									</div>
 								</div>
-								<div>
-									<label className='block text-xs font-semibold text-gray-500 mb-1'>Rider Phone</label>
-									<input
-										value={riderForm.phone}
-										onChange={(e) => setRiderForm((f) => ({ ...f, phone: e.target.value }))}
-										placeholder='e.g. 01711000000'
-										className='w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary'
-									/>
+							) : (
+								<div className='grid sm:grid-cols-2 gap-3 mb-4'>
+									<div className='col-span-full flex items-center justify-between'>
+										<label className='block text-xs font-semibold text-gray-500'>Create New Rider</label>
+										<button onClick={() => setShowNewRiderForm(false)} className='text-xs text-gray-400 hover:text-dark'>Cancel</button>
+									</div>
+									<div>
+										<input
+											value={riderForm.name}
+											onChange={(e) => setRiderForm((f) => ({ ...f, name: e.target.value }))}
+											placeholder='Rider Name (e.g. Rahim)'
+											className='w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary'
+										/>
+									</div>
+									<div>
+										<input
+											value={riderForm.phone}
+											onChange={(e) => setRiderForm((f) => ({ ...f, phone: e.target.value }))}
+											placeholder='Rider Phone (e.g. 01711000000)'
+											className='w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary'
+										/>
+									</div>
 								</div>
-							</div>
-							<div className='flex flex-wrap gap-3'>
-								<button
-									onClick={saveRider}
-									disabled={riderSaving}
-									className='px-5 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-50 cursor-pointer'
-								>
-									{riderSaving ? 'Saving…' : riderSaved ? '✓ Saved!' : 'Assign Rider'}
-								</button>
+							)}
+							<div className='flex flex-wrap gap-3 mt-4'>
+								{(!order.riderPhone || showNewRiderForm || riderForm.phone !== order.riderPhone) && (
+									<button
+										onClick={saveRider}
+										disabled={riderSaving || (!showNewRiderForm && !riderForm.phone)}
+										className='px-5 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-50 cursor-pointer'
+									>
+										{riderSaving ? 'Saving…' : riderSaved ? '✓ Saved!' : 'Assign Rider'}
+									</button>
+								)}
 
 								{/* WhatsApp button — only shown once rider phone exists */}
 								{order.riderPhone && riderWhatsAppUrl() && (
