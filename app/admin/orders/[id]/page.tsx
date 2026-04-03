@@ -9,6 +9,7 @@ import {
 	Download,
 	Mail,
 	MapPin,
+	MessageCircle,
 	Package,
 	Phone,
 	Pizza,
@@ -89,6 +90,10 @@ export default function OrderDetailPage() {
 	const [ratingSubmitted, setRatingSubmitted] = useState(false);
 	const [ratingLoading, setRatingLoading] = useState(false);
 
+	const [riderForm, setRiderForm] = useState({ name: '', phone: '' });
+	const [riderSaving, setRiderSaving] = useState(false);
+	const [riderSaved, setRiderSaved] = useState(false);
+
 	const fetchOrder = useCallback(async () => {
 		try {
 			let url = `/api/orders/${params.id}`;
@@ -110,6 +115,39 @@ export default function OrderDetailPage() {
 		const interval = setInterval(fetchOrder, 30000);
 		return () => clearInterval(interval);
 	}, [fetchOrder]);
+
+	// Sync riderForm with loaded order data
+	useEffect(() => {
+		if (order) {
+			setRiderForm({
+				name: order.riderName || '',
+				phone: order.riderPhone || '',
+			});
+		}
+	}, [order]);
+
+	async function saveRider() {
+		if (!order) return;
+		setRiderSaving(true);
+		try {
+			const res = await fetch(`/api/orders/${order._id}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					riderName: riderForm.name.trim(),
+					riderPhone: riderForm.phone.trim(),
+				}),
+			});
+			if (res.ok) {
+				const updated = await res.json();
+				setOrder(updated);
+				setRiderSaved(true);
+				setTimeout(() => setRiderSaved(false), 2500);
+			}
+		} finally {
+			setRiderSaving(false);
+		}
+	}
 
 	useEffect(() => {
 		if (autoDownload && order && !loading) {
@@ -233,6 +271,69 @@ export default function OrderDetailPage() {
 										{shortId}
 									</span>{' '}
 									— you&apos;ll need it to track your order.
+								</p>
+							)}
+						</div>
+					)}
+
+					{/* ── RIDER ASSIGNMENT (admin only) ── */}
+					{order.deliveryType === 'delivery' && (
+						<div className='no-print bg-white rounded-2xl border border-border shadow-sm p-6 mb-6'>
+							<h2 className='font-bold text-dark mb-4 flex items-center gap-2'>
+								<Truck className='h-5 w-5 text-primary' />
+								Rider Assignment
+							</h2>
+							<div className='grid sm:grid-cols-2 gap-3 mb-4'>
+								<div>
+									<label className='block text-xs font-semibold text-gray-500 mb-1'>Rider Name</label>
+									<input
+										value={riderForm.name}
+										onChange={(e) => setRiderForm((f) => ({ ...f, name: e.target.value }))}
+										placeholder='e.g. Rahim'
+										className='w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary'
+									/>
+								</div>
+								<div>
+									<label className='block text-xs font-semibold text-gray-500 mb-1'>Rider Phone</label>
+									<input
+										value={riderForm.phone}
+										onChange={(e) => setRiderForm((f) => ({ ...f, phone: e.target.value }))}
+										placeholder='e.g. 01711000000'
+										className='w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary'
+									/>
+								</div>
+							</div>
+							<div className='flex flex-wrap gap-3'>
+								<button
+									onClick={saveRider}
+									disabled={riderSaving}
+									className='px-5 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-50 cursor-pointer'
+								>
+									{riderSaving ? 'Saving…' : riderSaved ? '✓ Saved!' : 'Assign Rider'}
+								</button>
+
+								{/* WhatsApp button — only shown once rider phone exists */}
+								{order.riderPhone && riderWhatsAppUrl() && (
+									<a
+										href={riderWhatsAppUrl()!}
+										target='_blank'
+										rel='noopener noreferrer'
+										className='inline-flex items-center gap-2 px-5 py-2.5 bg-green-500 text-white text-sm font-semibold rounded-xl hover:bg-green-600 transition-colors'
+									>
+										<MessageCircle className='h-4 w-4' />
+										Send Location via WhatsApp
+									</a>
+								)}
+							</div>
+
+							{/* Current assignment badge */}
+							{order.riderName && (
+								<p className='mt-3 text-xs text-gray-400'>
+									Currently assigned:{' '}
+									<span className='font-semibold text-dark'>{order.riderName}</span>
+									{order.riderPhone && (
+										<span className='ml-1 text-gray-400'>({order.riderPhone})</span>
+									)}
 								</p>
 							)}
 						</div>

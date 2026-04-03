@@ -1,34 +1,36 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "framer-motion";
-import { ShoppingBag, Tag } from "lucide-react";
 import { useState } from "react";
+import { Gift, ShoppingCart, Check } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { useLang } from "@/contexts/LanguageContext";
 
-interface ComboCardProps {
-  combo: {
-    _id: string;
-    name: string;
-    description: string;
-    items: string[];
-    price: number;
-    image: string;
-  };
+interface Combo {
+  _id: string;
+  name: string;
+  name_bn?: string;
+  description: string;
+  description_bn?: string;
+  items: string[];
+  price: number;
+  image: string;
 }
 
-export default function ComboCard({ combo }: ComboCardProps) {
+export default function ComboCard({ combo }: { combo: Combo }) {
   const addItem = useCartStore((s) => s.addItem);
-  const { t } = useLang();
   const [added, setAdded] = useState(false);
+  const { t, lang } = useLang();
+
+  const displayName = lang === "bn" && combo.name_bn ? combo.name_bn : combo.name;
+  const displayDesc = lang === "bn" && combo.description_bn ? combo.description_bn : combo.description;
 
   function handleAdd() {
     addItem({
       pizzaId: combo._id,
       comboId: combo._id,
       type: "combo",
-      name: combo.name,
+      name: displayName,
       size: "",
       price: combo.price,
       quantity: 1,
@@ -36,59 +38,71 @@ export default function ComboCard({ combo }: ComboCardProps) {
       image: combo.image,
     });
     setAdded(true);
-    setTimeout(() => setAdded(false), 1500);
+    setTimeout(() => setAdded(false), 1800);
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      className="bg-dark text-white rounded-3xl overflow-hidden shadow-lg group flex flex-col"
-    >
+    <div className="relative flex flex-col bg-foreground text-white rounded-3xl overflow-hidden shadow-xl shadow-black/20 border border-white/10 min-w-[280px] max-w-[320px] shrink-0">
       {/* Image */}
-      <div className="relative h-44 overflow-hidden shrink-0">
+      <div className="relative h-44 overflow-hidden">
         <Image
           src={combo.image}
-          alt={combo.name}
+          alt={displayName}
           fill
-          sizes="(max-width: 640px) 100vw, 33vw"
-          className="object-cover group-hover:scale-105 transition-transform duration-500"
+          className="object-cover"
           unoptimized={combo.image.startsWith("/uploads/")}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-        <span className="absolute top-3 left-3 bg-primary text-white text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
-          <Tag className="h-3 w-3" />
+        <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 to-transparent" />
+
+        {/* COMBO badge */}
+        <span className="absolute top-3 left-3 flex items-center gap-1.5 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full">
+          <Gift className="h-3.5 w-3.5" />
           COMBO
         </span>
-        <span className="absolute bottom-3 right-3 bg-primary font-bold text-lg px-4 py-1 rounded-2xl shadow-lg">
+
+        {/* Price */}
+        <div className="absolute bottom-3 right-3 bg-primary text-white font-bold text-lg px-3 py-1 rounded-xl">
           ৳{combo.price}
-        </span>
+        </div>
       </div>
 
-      {/* Content */}
-      <div className="p-4 flex flex-col flex-1">
-        <h3 className="font-bold text-base mb-1 leading-snug">{combo.name}</h3>
+      {/* Body */}
+      <div className="flex flex-col flex-1 p-4">
+        <h3 className="font-bold text-base text-white mb-1">{displayName}</h3>
+        <p className="text-white/60 text-xs mb-3 line-clamp-2">{displayDesc}</p>
+
+        {/* Items */}
         <ul className="space-y-1 mb-4 flex-1">
-          {combo.items.map((item, i) => (
-            <li key={i} className="text-white/70 text-xs flex items-center gap-1.5">
+          {combo.items.map((item) => (
+            <li key={item} className="flex items-center gap-2 text-xs text-white/70">
               <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
               {item}
             </li>
           ))}
         </ul>
+
+        {/* Add to Cart */}
         <button
           onClick={handleAdd}
           className={`flex items-center justify-center gap-2 w-full py-2.5 rounded-2xl text-sm font-bold transition-all duration-200 cursor-pointer ${
             added
-              ? "bg-success text-white"
+              ? "bg-green-500 text-white"
               : "bg-primary text-white hover:bg-primary-dark"
           }`}
         >
-          <ShoppingBag className="h-4 w-4" />
-          {added ? "✓ Added!" : t("combo.addToCart")}
+          {added ? (
+            <>
+              <Check className="h-4 w-4" />
+              Added!
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="h-4 w-4" />
+              {t("combo.addToCart")}
+            </>
+          )}
         </button>
       </div>
-    </motion.div>
+    </div>
   );
 }

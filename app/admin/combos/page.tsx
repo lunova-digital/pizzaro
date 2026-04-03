@@ -9,7 +9,9 @@ import FileDropzone from "@/components/FileIDropzone";
 interface Combo {
   _id: string;
   name: string;
+  name_bn?: string;
   description: string;
+  description_bn?: string;
   items: string[];
   price: number;
   image: string;
@@ -18,7 +20,9 @@ interface Combo {
 
 const EMPTY_FORM = {
   name: "",
+  name_bn: "",
   description: "",
+  description_bn: "",
   itemsText: "",   // textarea value — split on save
   price: 0,
   image: "",
@@ -54,7 +58,9 @@ export default function AdminCombosPage() {
   function openEdit(combo: Combo) {
     setForm({
       name: combo.name,
+      name_bn: combo.name_bn || "",
       description: combo.description,
+      description_bn: combo.description_bn || "",
       itemsText: combo.items.join("\n"),
       price: combo.price,
       image: combo.image,
@@ -109,7 +115,9 @@ export default function AdminCombosPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name.trim(),
+          name_bn: (form.name_bn || "").trim(),
           description: form.description.trim(),
+          description_bn: (form.description_bn || "").trim(),
           items,
           price: form.price,
           image: form.image.trim(),
@@ -267,7 +275,7 @@ export default function AdminCombosPage() {
               )}
 
               <div>
-                <label className="block text-sm font-semibold text-dark mb-1.5">Name</label>
+                <label className="block text-sm font-semibold text-dark mb-1.5">Name (EN)</label>
                 <input
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
@@ -277,12 +285,32 @@ export default function AdminCombosPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-dark mb-1.5">Description</label>
+                <label className="block text-sm font-semibold text-dark mb-1.5">🇧🇩 নাম (বাংলা)</label>
+                <input
+                  value={form.name_bn}
+                  onChange={(e) => setForm((f) => ({ ...f, name_bn: e.target.value }))}
+                  placeholder="যেমন: পিৎজা কম্বো"
+                  className="w-full px-4 py-2.5 border border-orange-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-dark mb-1.5">Description (EN)</label>
                 <input
                   value={form.description}
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                   placeholder="Short tagline shown on the combo card"
                   className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-dark mb-1.5">🇧🇩 বিবরণ (বাংলা)</label>
+                <input
+                  value={form.description_bn}
+                  onChange={(e) => setForm((f) => ({ ...f, description_bn: e.target.value }))}
+                  placeholder="যেমন: ৪টি পিৎজা + কোল্ড ড্রিংকস"
+                  className="w-full px-4 py-2.5 border border-orange-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-primary"
                 />
               </div>
 

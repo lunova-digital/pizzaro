@@ -30,6 +30,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     if (stored === "en" || stored === "bn") setLangState(stored);
   }, []);
 
+  // Set html lang attribute for CSS :lang() selector + Bangla font
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
+
   function setLang(l: Lang) {
     localStorage.setItem("lang", l);
     setLangState(l);

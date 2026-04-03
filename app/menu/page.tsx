@@ -10,7 +10,9 @@ import { useLang } from "@/contexts/LanguageContext";
 interface Pizza {
   _id: string;
   name: string;
+  name_bn?: string;
   description: string;
+  description_bn?: string;
   image: string;
   sizes: { name: string; price: number }[];
   category: string;
@@ -18,9 +20,14 @@ interface Pizza {
   ratingCount?: number;
 }
 
+interface Category {
+  name: string;
+  name_bn?: string;
+}
+
 export default function MenuPage() {
   const [pizzas, setPizzas] = useState<Pizza[]>([]);
-  const [categories, setCategories] = useState<string[]>(["All"]);
+  const [categories, setCategories] = useState<Category[]>([{ name: "All" }]);
   const [selected, setSelected] = useState("All");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -37,8 +44,11 @@ export default function MenuPage() {
         const catData = await catRes.json();
         setPizzas(pizzaData);
         setCategories([
-          "All",
-          ...catData.map((c: { name: string }) => c.name),
+          { name: "All" },
+          ...catData.map((c: { name: string; name_bn?: string }) => ({
+            name: c.name,
+            name_bn: c.name_bn,
+          })),
         ]);
       } catch {
         console.error("Failed to load menu");

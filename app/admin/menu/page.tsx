@@ -8,7 +8,9 @@ import { useEffect, useState } from 'react';
 interface Pizza {
 	_id: string;
 	name: string;
+	name_bn?: string;
 	description: string;
+	description_bn?: string;
 	image: string;
 	category: string;
 	sizes: { name: string; price: number }[];
@@ -25,12 +27,16 @@ export default function AdminMenuPage() {
 	const [showAdd, setShowAdd] = useState(false);
 	const [form, setForm] = useState<{
 		name?: string;
+		name_bn?: string;
 		image?: string;
 		description?: string;
+		description_bn?: string;
 		category?: string;
 	}>({
 		name: '',
+		name_bn: '',
 		description: '',
+		description_bn: '',
 		image: '',
 		category: '',
 	});
@@ -46,8 +52,10 @@ export default function AdminMenuPage() {
 	useEffect(() => {
 		setForm({
 			name: pizzaData?.name!,
+			name_bn: pizzaData?.name_bn || '',
 			category: pizzaData?.category!,
 			description: pizzaData?.description!,
+			description_bn: pizzaData?.description_bn || '',
 			image: pizzaData?.image!,
 		});
 	}, [pizzaData]);
@@ -86,7 +94,7 @@ export default function AdminMenuPage() {
 		if (res.ok) {
 			const pizza = await res.json();
 			setPizzas((prev) => [pizza, ...prev]);
-			setForm({ name: '', description: '', image: '', category: '' });
+			setForm({ name: '', name_bn: '', description: '', description_bn: '', image: '', category: '' });
 			setShowAdd(false);
 		}
 	};
@@ -101,13 +109,11 @@ export default function AdminMenuPage() {
 		});
 
 		if (res.ok) {
-			const updatedPizza = await res.json(); // assuming API returns updated item
-
+			const updatedPizza = await res.json();
 			setPizzas((prev) =>
 				prev.map((p) => (p._id === updatedPizza._id ? updatedPizza : p)),
 			);
-
-			setForm({ name: '', description: '', image: '', category: '' });
+			setForm({ name: '', name_bn: '', description: '', description_bn: '', image: '', category: '' });
 			setShowAdd(false);
 			setPizzaData(null);
 			setEditingId(null);
@@ -188,10 +194,16 @@ export default function AdminMenuPage() {
 					</div>
 					<div className='grid grid-cols-2 gap-3 mb-3'>
 						<input
-							placeholder='Pizza Name'
+							placeholder='Pizza Name (EN)'
 							value={form.name}
 							onChange={(e) => setForm({ ...form, name: e.target.value })}
 							className='px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-primary'
+						/>
+						<input
+							placeholder='🇧🇩 পিৎজার নাম (বাংলা)'
+							value={form.name_bn}
+							onChange={(e) => setForm({ ...form, name_bn: e.target.value })}
+							className='px-3 py-2 rounded-lg border border-orange-200 text-sm focus:outline-none focus:border-primary'
 						/>
 						<input
 							placeholder='Category'
@@ -201,10 +213,16 @@ export default function AdminMenuPage() {
 						/>
 					</div>
 					<input
-						placeholder='Description'
+						placeholder='Description (EN)'
 						value={form.description}
 						onChange={(e) => setForm({ ...form, description: e.target.value })}
-						className='w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-primary mb-3'
+						className='w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-primary mb-2'
+					/>
+					<input
+						placeholder='🇧🇩 বিবরণ (বাংলায় লিখুন)'
+						value={form.description_bn}
+						onChange={(e) => setForm({ ...form, description_bn: e.target.value })}
+						className='w-full px-3 py-2 rounded-lg border border-orange-200 text-sm focus:outline-none focus:border-primary mb-3'
 					/>
 					{/* <input
 						placeholder='Image URL'

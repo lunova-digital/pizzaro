@@ -7,7 +7,9 @@ export interface ISize {
 
 export interface IPizza extends Document {
   name: string;
+  name_bn: string;
   description: string;
+  description_bn: string;
   image: string;
   category: string;
   sizes: ISize[];
@@ -26,15 +28,17 @@ const SizeSchema = new Schema<ISize>({
 
 const PizzaSchema = new Schema<IPizza>(
   {
-    name: { type: String, required: true },
-    description: { type: String, required: true },
-    image: { type: String, required: true },
-    category: { type: String, required: true },
-    sizes: { type: [SizeSchema], required: true },
-    toppings: [{ type: String }],
-    isAvailable: { type: Boolean, default: true },
-    averageRating: { type: Number, default: 5 },
-    ratingCount: { type: Number, default: 0 },
+    name:           { type: String, required: true },
+    name_bn:        { type: String, default: "" },
+    description:    { type: String, required: true },
+    description_bn: { type: String, default: "" },
+    image:          { type: String, required: true },
+    category:       { type: String, required: true },
+    sizes:          { type: [SizeSchema], required: true },
+    toppings:       [{ type: String }],
+    isAvailable:    { type: Boolean, default: true },
+    averageRating:  { type: Number, default: 5 },
+    ratingCount:    { type: Number, default: 0 },
   },
   { timestamps: true }
 );

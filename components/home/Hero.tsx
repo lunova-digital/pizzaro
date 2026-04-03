@@ -4,14 +4,17 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, Clock, Star, Truck } from "lucide-react";
-
-const badges = [
-  { icon: Clock, label: "30-min delivery" },
-  { icon: Star, label: "4.9 rated" },
-  { icon: Truck, label: "Free over $25" },
-];
+import { useLang } from "@/contexts/LanguageContext";
 
 export default function Hero() {
+  const { t } = useLang();
+
+  const badges = [
+    { icon: Clock, label: t("hero.badge30min") },
+    { icon: Star, label: t("hero.badge49") },
+    { icon: Truck, label: t("hero.badgeFree") },
+  ];
+
   return (
     <section className="relative overflow-hidden bg-bg">
       {/* Background blobs */}
@@ -31,25 +34,25 @@ export default function Hero() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-semibold mb-6">
               <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-              Now delivering in your area
+              {t("hero.badge")}
             </div>
 
             <h1
               className="text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground leading-[1.1] mb-6"
               style={{ fontFamily: "var(--font-heading)" }}
             >
-              Freshly Made
+              {t("hero.headline1")}
               <span className="block text-primary relative">
-                Pizza
+                {t("hero.headline2")}
                 <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 8" preserveAspectRatio="none">
                   <path d="M0 6 Q50 0 100 4 Q150 8 200 2" stroke="#EA580C" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.4"/>
                 </svg>
               </span>
-              <span className="text-foreground/80"> Delivered Hot</span>
+              <span className="text-foreground/80"> {t("hero.headline3")}</span>
             </h1>
 
             <p className="text-lg text-muted-fg leading-relaxed max-w-md mb-8">
-              Handcrafted with the finest ingredients, baked to golden perfection, and delivered straight to your door in 30 minutes or less.
+              {t("hero.subtitle")}
             </p>
 
             {/* CTAs */}
@@ -58,14 +61,14 @@ export default function Hero() {
                 href="/menu"
                 className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-primary text-white font-bold text-base hover:bg-primary-dark transition-all shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 active:translate-y-0"
               >
-                Order Now
+                {t("hero.orderNow")}
                 <ArrowRight className="h-4.5 w-4.5" />
               </Link>
               <Link
                 href="/menu"
                 className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl border-2 border-foreground/15 text-foreground font-bold text-base hover:border-primary hover:text-primary transition-all"
               >
-                See Menu
+                {t("hero.seeMenu")}
               </Link>
             </div>
 
@@ -90,7 +93,6 @@ export default function Hero() {
             transition={{ duration: 0.5, ease: "easeOut" }}
             className="relative"
           >
-            {/* Decorative ring */}
             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 via-secondary/10 to-transparent scale-110 blur-2xl" />
 
             {/* Floating card */}
@@ -100,8 +102,8 @@ export default function Hero() {
                   <span className="text-green-600 text-xs font-bold">✓</span>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-dark">Order Placed!</p>
-                  <p className="text-xs text-muted-fg">Arriving in 28 min</p>
+                  <p className="text-xs font-bold text-dark">{t("hero.orderPlaced")}</p>
+                  <p className="text-xs text-muted-fg">{t("hero.arriving")}</p>
                 </div>
               </div>
             </div>
@@ -116,7 +118,7 @@ export default function Hero() {
                 </div>
                 <span className="text-xs font-bold text-dark">4.9 / 5</span>
               </div>
-              <p className="text-xs text-muted-fg mt-0.5">2,400+ reviews</p>
+              <p className="text-xs text-muted-fg mt-0.5">{t("hero.reviews")}</p>
             </div>
 
             <div className="relative aspect-square max-w-lg mx-auto">

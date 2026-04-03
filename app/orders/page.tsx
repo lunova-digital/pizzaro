@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
 import { Package, ChevronRight, Download } from "lucide-react";
+import { useLang } from "@/contexts/LanguageContext";
 
 interface Order {
   _id: string;
@@ -25,20 +26,22 @@ const statusColors: Record<string, string> = {
   "picked-up": "bg-green-100 text-green-700",
 };
 
-const statusLabels: Record<string, string> = {
-  placed: "Order Placed",
-  preparing: "Preparing",
-  "out-for-delivery": "Out for Delivery",
-  delivered: "Delivered",
-  "ready-for-pickup": "Ready for Pickup",
-  "picked-up": "Picked Up",
-};
-
 export default function OrdersPage() {
   const { status } = useSession();
   const router = useRouter();
+  const { t } = useLang();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Bilingual status labels — built at render time so t() is called inside the component
+  const statusLabels: Record<string, string> = {
+    placed: t("myOrders.statusPlaced"),
+    preparing: t("myOrders.statusPreparing"),
+    "out-for-delivery": t("myOrders.statusOutForDelivery"),
+    delivered: t("myOrders.statusDelivered"),
+    "ready-for-pickup": t("myOrders.statusReadyPickup"),
+    "picked-up": t("myOrders.statusPickedUp"),
+  };
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/auth/login");
@@ -65,20 +68,20 @@ export default function OrdersPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 py-10">
-        <h1 className="text-3xl font-bold text-dark mb-8">My Orders</h1>
+        <h1 className="text-3xl font-bold text-dark mb-8">{t("myOrders.title")}</h1>
 
         {orders.length === 0 ? (
           <div className="text-center py-16">
             <Package className="h-14 w-14 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-dark mb-2">No orders yet</h2>
+            <h2 className="text-xl font-bold text-dark mb-2">{t("myOrders.noOrders")}</h2>
             <p className="text-gray-500 mb-6">
-              Your order history will appear here
+              {t("myOrders.noOrdersHint")}
             </p>
             <Link
               href="/menu"
               className="px-8 py-3 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-colors"
             >
-              Order Now
+              {t("myOrders.orderNow")}
             </Link>
           </div>
         ) : (
