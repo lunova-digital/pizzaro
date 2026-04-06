@@ -1,7 +1,8 @@
 import { formatPrice } from '@/lib/utils';
 import { Pencil, Trash2 } from 'lucide-react';
 import Image from 'next/image';
-import { FC } from 'react';
+import { FC, useState } from 'react';
+import DeleteModal from '../DeleteModal';
 import { SelectInput } from '../SelectInput';
 
 const PizzaMenuCardAdmin: FC<{
@@ -10,6 +11,8 @@ const PizzaMenuCardAdmin: FC<{
 	onDeletePizza: CallableFunction;
 	toggleAvailability: CallableFunction;
 }> = ({ pizza, onEditPizza, onDeletePizza, toggleAvailability }) => {
+	const [isShowDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+
 	return (
 		<div
 			key={pizza._id}
@@ -22,7 +25,7 @@ const PizzaMenuCardAdmin: FC<{
 						alt={pizza.name}
 						fill
 						className='object-cover'
-						unoptimized={pizza.image?.startsWith("/uploads/")}
+						unoptimized={pizza.image?.startsWith('/uploads/')}
 					/>
 				) : (
 					<div className='w-full h-full bg-gray-100' />
@@ -59,12 +62,19 @@ const PizzaMenuCardAdmin: FC<{
 					<Pencil className='h-4 w-4' />
 				</button>
 				<button
-					onClick={() => onDeletePizza()}
+					onClick={() => setShowDeleteModal(true)}
 					// disabled={deletingId === pizza._id}
 					className='w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-primary transition-colors disabled:opacity-50'
 				>
 					<Trash2 className='h-4 w-4' />
 				</button>{' '}
+				{isShowDeleteModal && (
+					<DeleteModal
+						text='Are you sure to delete this combo ?'
+						handleDelete={() => onDeletePizza()}
+						setShowDeleteModal={setShowDeleteModal}
+					/>
+				)}
 			</div>
 		</div>
 	);
