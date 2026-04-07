@@ -1,14 +1,11 @@
 'use client';
 
-import DeleteModal from '@/components/DeleteModal';
-import FileDropzone from '@/components/FileIDropzone';
-import ModalWrapper from '@/components/ModalWrapper';
-import { formatPrice } from '@/lib/utils';
-import { Check, Pencil, Plus, Trash2, X } from 'lucide-react';
-import Image from 'next/image';
+import ComboForm from '@/components/admin/combos/ComboForm';
+import CombosList from '@/components/admin/combos/CombosList';
+import { Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-interface Combo {
+export interface Combo {
 	_id: string;
 	name: string;
 	name_bn?: string;
@@ -39,7 +36,6 @@ export default function AdminCombosPage() {
 	const [combos, setCombos] = useState<Combo[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [showForm, setShowForm] = useState(false);
-	const [isShowDeleteModal, setShowDeleteModal] = useState(false);
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [form, setForm] = useState({ ...EMPTY_FORM });
 	const [uploading, setUploading] = useState(false);
@@ -184,20 +180,6 @@ export default function AdminCombosPage() {
 		}
 	}
 
-	async function toggleAvailable(combo: Combo) {
-		const res = await fetch(`/api/combos/${combo._id}`, {
-			method: 'PUT',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ isAvailable: !combo.isAvailable }),
-		});
-		if (res.ok) {
-			const updated: Combo = await res.json();
-			setCombos((prev) =>
-				prev.map((c) => (c._id === updated._id ? updated : c)),
-			);
-		}
-	}
-
 	return (
 		<div className='p-6 max-w-5xl mx-auto'>
 			{/* Header */}
@@ -218,328 +200,28 @@ export default function AdminCombosPage() {
 			</div>
 
 			{/* List */}
-			{loading ? (
-				<div className='space-y-3'>
-					{[...Array(3)].map((_, i) => (
-						<div
-							key={i}
-							className='h-20 bg-gray-100 rounded-2xl animate-pulse'
-						/>
-					))}
-				</div>
-			) : combos.length === 0 ? (
-				<div className='text-center py-16 text-muted-fg'>
-					<p className='text-xl font-bold text-dark'>No combos yet</p>
-					<p className='mt-1 text-sm'>
-						Click &quot;Add Combo&quot; to create your first deal
-					</p>
-				</div>
-			) : (
-				<div className='space-y-3'>
-					{combos.map((combo) => (
-						<div
-							key={combo._id}
-							className='bg-surface border border-border rounded-2xl p-4 flex items-center gap-4'
-						>
-							{/* Image */}
-							<div className='relative w-16 h-16 rounded-xl overflow-hidden shrink-0'>
-								<Image
-									src={combo.image}
-									alt={combo.name}
-									fill
-									className='object-cover'
-									unoptimized={combo.image?.startsWith('/uploads/')}
-								/>
-							</div>
-
-							{/* Info */}
-							<div className='flex-1 min-w-0'>
-								<div className='flex items-center gap-2'>
-									<span className='font-bold text-dark truncate'>
-										{combo.name}
-									</span>
-									<span className='text-primary font-bold text-sm'>
-										{formatPrice(combo.price)}
-									</span>
-								</div>
-								<p className='text-xs text-muted-fg mt-0.5 truncate'>
-									{combo.items.join(' · ')}
-								</p>
-							</div>
-
-							{/* Actions */}
-							<div className='flex items-center gap-2 shrink-0'>
-								<button
-									onClick={() => toggleAvailable(combo)}
-									className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-										combo.isAvailable
-											? 'bg-green-100 text-green-700 hover:bg-green-200'
-											: 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-									}`}
-								>
-									{combo.isAvailable ? 'Live' : 'Hidden'}
-								</button>
-								<button
-									onClick={() => openEdit(combo)}
-									className='p-2 text-muted-fg hover:text-primary hover:bg-orange-50 rounded-lg transition-colors cursor-pointer'
-								>
-									<Pencil className='h-4 w-4' />
-								</button>
-								<button
-									onClick={() => setShowDeleteModal(true)}
-									disabled={deletingId === combo._id}
-									className='p-2 text-muted-fg hover:text-danger hover:bg-red-50 rounded-lg transition-colors cursor-pointer disabled:opacity-40'
-								>
-									<Trash2 className='h-4 w-4' />
-								</button>
-								{isShowDeleteModal && (
-									<DeleteModal
-										text='Are you sure to delete this combo ?'
-										handleDelete={() => handleDelete(combo._id)}
-										setShowDeleteModal={setShowDeleteModal}
-									/>
-								)}
-							</div>
-						</div>
-					))}
-				</div>
-			)}
+			<CombosList
+				combos={combos}
+				loading={loading}
+				setCombos={setCombos}
+				openEdit={openEdit}
+				handleDelete={handleDelete}
+				deletingId={deletingId!}
+			/>
 
 			{/* Add / Edit form overlay */}
 			{showForm && (
-				<ModalWrapper size='2xl'>
-					<>
-						<div className='flex items-center justify-between p-6 border-b border-border'>
-							<h2 className='text-lg font-bold text-dark'>
-								{editingId ? 'Edit Combo' : 'Add Combo'}
-							</h2>
-							<button
-								onClick={closeForm}
-								className='p-2 rounded-xl hover:bg-gray-100 cursor-pointer'
-							>
-								<X className='h-5 w-5 text-muted-fg' />
-							</button>
-						</div>
-
-						<div className='p-6 space-y-4'>
-							{error && (
-								<div className='bg-red-50 text-danger text-sm px-4 py-3 rounded-xl'>
-									{error}
-								</div>
-							)}
-
-							<div>
-								<label className='block text-sm font-semibold text-dark mb-1.5'>
-									Name (EN)
-								</label>
-								<input
-									value={form.name}
-									onChange={(e) =>
-										setForm((f) => ({ ...f, name: e.target.value }))
-									}
-									placeholder='e.g. Pizza Combo'
-									className='w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
-								/>
-							</div>
-
-							<div>
-								<label className='block text-sm font-semibold text-dark mb-1.5'>
-									🇧🇩 নাম (বাংলা)
-								</label>
-								<input
-									value={form.name_bn}
-									onChange={(e) =>
-										setForm((f) => ({ ...f, name_bn: e.target.value }))
-									}
-									placeholder='যেমন: পিৎজা কম্বো'
-									className='w-full px-4 py-2.5 border border-orange-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-primary'
-								/>
-							</div>
-
-							<div>
-								<label className='block text-sm font-semibold text-dark mb-1.5'>
-									Description (EN)
-								</label>
-								<input
-									value={form.description}
-									onChange={(e) =>
-										setForm((f) => ({ ...f, description: e.target.value }))
-									}
-									placeholder='Short tagline shown on the combo card'
-									className='w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
-								/>
-							</div>
-
-							<div>
-								<label className='block text-sm font-semibold text-dark mb-1.5'>
-									🇧🇩 বিবরণ (বাংলা)
-								</label>
-								<input
-									value={form.description_bn}
-									onChange={(e) =>
-										setForm((f) => ({ ...f, description_bn: e.target.value }))
-									}
-									placeholder='যেমন: ৪টি পিৎজা + কোল্ড ড্রিংকস'
-									className='w-full px-4 py-2.5 border border-orange-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-primary'
-								/>
-							</div>
-
-							<div>
-								<label className='block text-sm font-semibold text-dark mb-1.5'>
-									Items{' '}
-									<span className='font-normal text-muted-fg'>
-										(one per line)
-									</span>
-								</label>
-								<textarea
-									value={form.itemsText}
-									onChange={(e) =>
-										setForm((f) => ({ ...f, itemsText: e.target.value }))
-									}
-									rows={5}
-									placeholder={
-										'BBQ Chicken Pizza\nFrench Fries\nCold Drinks 2pis'
-									}
-									className='w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none'
-								/>
-							</div>
-
-							<div>
-								<label className='block text-sm font-semibold text-dark mb-1.5'>
-									Price (৳)
-								</label>
-								<input
-									type='number'
-									min={1}
-									value={form.price || ''}
-									onChange={(e) =>
-										setForm((f) => ({
-											...f,
-											price: parseInt(e.target.value) || 0,
-										}))
-									}
-									placeholder='e.g. 999'
-									className='w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
-								/>
-							</div>
-
-							<div>
-								<label className='block text-sm font-semibold text-dark mb-1.5'>
-									Offer Ends At (Optional)
-								</label>
-								<input
-									type='datetime-local'
-									value={form.offerEndsAt}
-									onChange={(e) =>
-										setForm((f) => ({ ...f, offerEndsAt: e.target.value }))
-									}
-									className='w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary'
-								/>
-								<p className='text-xs text-muted-fg mt-1'>
-									Leave empty if this is a permanent combo offer.
-								</p>
-							</div>
-
-							<div>
-								<label className='block text-sm font-semibold text-dark mb-1.5'>
-									Image
-								</label>
-								<FileDropzone uploadImage={uploadImage} image={form.image} />
-								{uploading && (
-									<p className='text-xs text-muted-fg mt-1'>Uploading...</p>
-								)}
-								<input
-									value={form.image}
-									onChange={(e) =>
-										setForm((f) => ({ ...f, image: e.target.value }))
-									}
-									placeholder='Or paste image URL'
-									className='w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary mt-2'
-								/>
-								{form.image && (
-									<div className='relative w-full h-32 mt-2 rounded-xl overflow-hidden border border-border'>
-										<Image
-											src={form.image}
-											alt='preview'
-											fill
-											className='object-cover'
-											unoptimized
-										/>
-									</div>
-								)}
-							</div>
-
-							<div className='flex flex-col gap-3'>
-								<div className='flex items-center gap-3'>
-									<button
-										onClick={() =>
-											setForm((f) => ({ ...f, isAvailable: !f.isAvailable }))
-										}
-										className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-											form.isAvailable ? 'bg-primary' : 'bg-gray-200'
-										}`}
-									>
-										<span
-											className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-												form.isAvailable ? 'translate-x-0.5' : '-translate-x-5'
-											}`}
-										/>
-									</button>
-									<span className='text-sm font-medium text-dark'>
-										{form.isAvailable
-											? 'Visible to customers'
-											: 'Hidden from menu'}
-									</span>
-								</div>
-
-								<div className='flex items-center gap-3'>
-									<button
-										onClick={() =>
-											setForm((f) => ({ ...f, isFeatured: !f.isFeatured }))
-										}
-										className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-											form.isFeatured ? 'bg-red-600' : 'bg-gray-200'
-										}`}
-									>
-										<span
-											className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-												form.isFeatured ? 'translate-x-0.5' : '-translate-x-5'
-											}`}
-										/>
-									</button>
-									<span className='text-sm font-medium text-dark'>
-										{form.isFeatured
-											? 'Featured on Homepage'
-											: 'Standard Combo'}
-									</span>
-								</div>
-							</div>
-						</div>
-
-						<div className='p-6 pt-0 flex gap-3'>
-							<button
-								onClick={closeForm}
-								className='flex-1 py-3 border border-border rounded-xl font-semibold text-dark hover:bg-gray-50 transition-colors cursor-pointer'
-							>
-								Cancel
-							</button>
-							<button
-								onClick={handleSave}
-								disabled={saving || uploading}
-								className='flex-1 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2'
-							>
-								{saving ? (
-									'Saving...'
-								) : (
-									<>
-										<Check className='h-4 w-4' />
-										{editingId ? 'Save Changes' : 'Create Combo'}
-									</>
-								)}
-							</button>
-						</div>
-					</>
-				</ModalWrapper>
+				<ComboForm
+					closeForm={closeForm}
+					editingId={editingId!}
+					error={error}
+					form={form}
+					handleSave={handleSave}
+					saving={saving}
+					setForm={setForm}
+					uploadImage={uploadImage}
+					uploading={uploading}
+				/>
 			)}
 		</div>
 	);
