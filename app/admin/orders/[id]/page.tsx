@@ -4,8 +4,6 @@ import { formatPrice } from '@/lib/utils';
 import {
 	ArrowLeft,
 	CheckCircle,
-	ChefHat,
-	Clock,
 	Download,
 	Mail,
 	MapPin,
@@ -42,20 +40,6 @@ interface Order {
 	createdAt: string;
 }
 
-const deliverySteps = [
-	{ key: 'placed', label: 'Order Placed', icon: Clock },
-	{ key: 'preparing', label: 'Preparing', icon: ChefHat },
-	{ key: 'out-for-delivery', label: 'On the Way', icon: Truck },
-	{ key: 'delivered', label: 'Delivered', icon: CheckCircle },
-];
-
-const pickupSteps = [
-	{ key: 'placed', label: 'Order Placed', icon: Clock },
-	{ key: 'preparing', label: 'Preparing', icon: ChefHat },
-	{ key: 'ready-for-pickup', label: 'Ready for Pickup', icon: Package },
-	{ key: 'picked-up', label: 'Picked Up', icon: CheckCircle },
-];
-
 const statusLabel: Record<string, string> = {
 	placed: 'Order Placed',
 	preparing: 'Preparing',
@@ -63,15 +47,6 @@ const statusLabel: Record<string, string> = {
 	delivered: 'Delivered',
 	'ready-for-pickup': 'Ready for Pickup',
 	'picked-up': 'Picked Up',
-};
-
-const statusColor: Record<string, string> = {
-	placed: 'bg-blue-100 text-blue-700',
-	preparing: 'bg-yellow-100 text-yellow-700',
-	'out-for-delivery': 'bg-orange-100 text-orange-700',
-	delivered: 'bg-green-100 text-green-700',
-	'ready-for-pickup': 'bg-purple-100 text-purple-700',
-	'picked-up': 'bg-green-100 text-green-700',
 };
 
 export default function OrderDetailPage() {
@@ -85,15 +60,15 @@ export default function OrderDetailPage() {
 
 	const [order, setOrder] = useState<Order | null>(null);
 	const [loading, setLoading] = useState(true);
-	const [hoverRating, setHoverRating] = useState(0);
-	const [selectedRating, setSelectedRating] = useState(0);
-	const [ratingSubmitted, setRatingSubmitted] = useState(false);
-	const [ratingLoading, setRatingLoading] = useState(false);
+	const [selectedRating] = useState(0);
+	const [, setRatingLoading] = useState(false);
 
 	const [riderForm, setRiderForm] = useState({ name: '', phone: '' });
 	const [riderSaving, setRiderSaving] = useState(false);
 	const [riderSaved, setRiderSaved] = useState(false);
-	const [riders, setRiders] = useState<{ _id: string; name: string; phone: string }[]>([]);
+	const [riders, setRiders] = useState<
+		{ _id: string; name: string; phone: string }[]
+	>([]);
 	const [showNewRiderForm, setShowNewRiderForm] = useState(false);
 
 	const fetchOrder = useCallback(async () => {
@@ -145,11 +120,16 @@ export default function OrderDetailPage() {
 				const riderRes = await fetch('/api/riders', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ name: riderForm.name.trim(), phone: riderForm.phone.trim() })
+					body: JSON.stringify({
+						name: riderForm.name.trim(),
+						phone: riderForm.phone.trim(),
+					}),
 				});
 				if (riderRes.ok) {
 					const newRider = await riderRes.json();
-					setRiders(prev => [...prev, newRider].sort((a,b) => a.name.localeCompare(b.name)));
+					setRiders((prev) =>
+						[...prev, newRider].sort((a, b) => a.name.localeCompare(b.name)),
+					);
 					setShowNewRiderForm(false);
 				}
 			}
@@ -193,7 +173,6 @@ export default function OrderDetailPage() {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ rating: selectedRating }),
 			});
-			if (res.ok) setRatingSubmitted(true);
 		} finally {
 			setRatingLoading(false);
 		}
@@ -222,8 +201,6 @@ export default function OrderDetailPage() {
 		);
 	}
 
-	const steps = order.deliveryType === 'pickup' ? pickupSteps : deliverySteps;
-	const currentStepIndex = steps.findIndex((s) => s.key === order.status);
 	const subtotal = order.items.reduce((s, i) => s + i.price * i.quantity, 0);
 	const deliveryFee = order.totalAmount - subtotal;
 
@@ -240,12 +217,17 @@ export default function OrderDetailPage() {
 		const mapLink = addressStr
 			? ` Google Maps: https://maps.google.com/?q=${encodeURIComponent(addressStr)}`
 			: '';
-            
-		const itemsText = order.items.map(item => {
-			const sizeStr = item.size ? ` (${item.size})` : '';
-			const toppingsStr = item.toppings && item.toppings.length > 0 ? ` + ${item.toppings.join(', ')}` : '';
-			return `• ${item.quantity}x ${item.name}${sizeStr}${toppingsStr}`;
-		}).join('\n');
+
+		const itemsText = order.items
+			.map((item) => {
+				const sizeStr = item.size ? ` (${item.size})` : '';
+				const toppingsStr =
+					item.toppings && item.toppings.length > 0
+						? ` + ${item.toppings.join(', ')}`
+						: '';
+				return `• ${item.quantity}x ${item.name}${sizeStr}${toppingsStr}`;
+			})
+			.join('\n');
 
 		const msg = `Assigned Order #${shortId}.\nDelivery address: ${addressStr ?? 'See order details'}.${mapLink}\n\nOrder Items:\n${itemsText}`;
 		return `https://wa.me/${toWaPhone(order.riderPhone)}?text=${encodeURIComponent(msg)}`;
@@ -317,14 +299,21 @@ export default function OrderDetailPage() {
 							{!showNewRiderForm ? (
 								<div className='grid sm:grid-cols-2 gap-3 mb-4 items-end'>
 									<div className='col-span-full sm:col-span-1'>
-										<label className='block text-xs font-semibold text-gray-500 mb-1'>Select Existing Rider</label>
+										<label className='block text-xs font-semibold text-gray-500 mb-1'>
+											Select Existing Rider
+										</label>
 										<select
 											className='w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary'
 											value={riderForm.phone}
 											onChange={(e) => {
-												const selected = riders.find((r) => r.phone === e.target.value);
+												const selected = riders.find(
+													(r) => r.phone === e.target.value,
+												);
 												if (selected) {
-													setRiderForm({ name: selected.name, phone: selected.phone });
+													setRiderForm({
+														name: selected.name,
+														phone: selected.phone,
+													});
 												} else {
 													setRiderForm({ name: '', phone: '' });
 												}
@@ -332,7 +321,9 @@ export default function OrderDetailPage() {
 										>
 											<option value=''>-- Select Rider --</option>
 											{riders.map((r) => (
-												<option key={r._id} value={r.phone}>{r.name} ({r.phone})</option>
+												<option key={r._id} value={r.phone}>
+													{r.name} ({r.phone})
+												</option>
 											))}
 										</select>
 									</div>
@@ -351,13 +342,22 @@ export default function OrderDetailPage() {
 							) : (
 								<div className='grid sm:grid-cols-2 gap-3 mb-4'>
 									<div className='col-span-full flex items-center justify-between'>
-										<label className='block text-xs font-semibold text-gray-500'>Create New Rider</label>
-										<button onClick={() => setShowNewRiderForm(false)} className='text-xs text-gray-400 hover:text-dark'>Cancel</button>
+										<label className='block text-xs font-semibold text-gray-500'>
+											Create New Rider
+										</label>
+										<button
+											onClick={() => setShowNewRiderForm(false)}
+											className='text-xs text-gray-400 hover:text-dark'
+										>
+											Cancel
+										</button>
 									</div>
 									<div>
 										<input
 											value={riderForm.name}
-											onChange={(e) => setRiderForm((f) => ({ ...f, name: e.target.value }))}
+											onChange={(e) =>
+												setRiderForm((f) => ({ ...f, name: e.target.value }))
+											}
 											placeholder='Rider Name (e.g. Rahim)'
 											className='w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary'
 										/>
@@ -365,7 +365,9 @@ export default function OrderDetailPage() {
 									<div>
 										<input
 											value={riderForm.phone}
-											onChange={(e) => setRiderForm((f) => ({ ...f, phone: e.target.value }))}
+											onChange={(e) =>
+												setRiderForm((f) => ({ ...f, phone: e.target.value }))
+											}
 											placeholder='Rider Phone (e.g. 01711000000)'
 											className='w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary'
 										/>
@@ -373,13 +375,21 @@ export default function OrderDetailPage() {
 								</div>
 							)}
 							<div className='flex flex-wrap gap-3 mt-4'>
-								{(!order.riderPhone || showNewRiderForm || riderForm.phone !== order.riderPhone) && (
+								{(!order.riderPhone ||
+									showNewRiderForm ||
+									riderForm.phone !== order.riderPhone) && (
 									<button
 										onClick={saveRider}
-										disabled={riderSaving || (!showNewRiderForm && !riderForm.phone)}
+										disabled={
+											riderSaving || (!showNewRiderForm && !riderForm.phone)
+										}
 										className='px-5 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-50 cursor-pointer'
 									>
-										{riderSaving ? 'Saving…' : riderSaved ? '✓ Saved!' : 'Assign Rider'}
+										{riderSaving
+											? 'Saving…'
+											: riderSaved
+												? '✓ Saved!'
+												: 'Assign Rider'}
 									</button>
 								)}
 
@@ -401,9 +411,13 @@ export default function OrderDetailPage() {
 							{order.riderName && (
 								<p className='mt-3 text-xs text-gray-400'>
 									Currently assigned:{' '}
-									<span className='font-semibold text-dark'>{order.riderName}</span>
+									<span className='font-semibold text-dark'>
+										{order.riderName}
+									</span>
 									{order.riderPhone && (
-										<span className='ml-1 text-gray-400'>({order.riderPhone})</span>
+										<span className='ml-1 text-gray-400'>
+											({order.riderPhone})
+										</span>
 									)}
 								</p>
 							)}
@@ -558,17 +572,26 @@ export default function OrderDetailPage() {
 													<td className='px-4 py-3'>
 														<p className='font-medium text-dark'>
 															{item.name}
-															{(item.size || (item.toppings && item.toppings.length > 0 && !item.size)) ? (
+															{item.size ||
+															(item.toppings &&
+																item.toppings.length > 0 &&
+																!item.size) ? (
 																<span className='text-gray-400 font-normal ml-1 text-xs'>
-																	({item.size ? item.size : item.toppings.join(', ')})
+																	(
+																	{item.size
+																		? item.size
+																		: item.toppings.join(', ')}
+																	)
 																</span>
 															) : null}
 														</p>
-														{item.size && item.toppings && item.toppings.length > 0 && (
-															<p className='text-xs text-gray-400 mt-0.5'>
-																+ {item.toppings.join(', ')}
-															</p>
-														)}
+														{item.size &&
+															item.toppings &&
+															item.toppings.length > 0 && (
+																<p className='text-xs text-gray-400 mt-0.5'>
+																	+ {item.toppings.join(', ')}
+																</p>
+															)}
 													</td>
 													<td className='px-4 py-3 text-right text-gray-600'>
 														{item.quantity}
